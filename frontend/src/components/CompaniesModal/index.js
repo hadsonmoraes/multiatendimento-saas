@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react"; //, useContext
 
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
@@ -11,13 +11,15 @@ import {
 	DialogContent,
 	DialogTitle,
 	CircularProgress,
-	Select,
-	InputLabel,
-	MenuItem,
-	FormControl,
+	// Select,
+	// InputLabel,
+	// MenuItem,
+	// FormControl,
 	TextField,
 	InputAdornment,
-	IconButton
+	IconButton,
+	FormControlLabel,
+	Switch
 } from '@material-ui/core';
 
 import { Visibility, VisibilityOff } from '@material-ui/icons';
@@ -29,10 +31,6 @@ import { i18n } from "../../translate/i18n";
 
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
-import QueueSelect from "../QueueSelect";
-import { AuthContext } from "../../context/Auth/AuthContext";
-import { Can } from "../Can";
-import useWhatsApps from "../../hooks/useWhatsApps";
 
 const useStyles = makeStyles(theme => ({
 	root: {
@@ -66,8 +64,8 @@ const useStyles = makeStyles(theme => ({
 
 const CompanySchema = Yup.object().shape({
 	name: Yup.string()
-		.min(2, "Too Short!")
-		.max(50, "Too Long!")
+		.min(2, "Muito curto!")
+		.max(50, "Muito longo!")
 		.required("Nome é obrigatório"),
 	email: Yup.string().email("Email é inválido").required("E-mail é obrigatório"),
 	numberAttendants: Yup.number(),
@@ -83,6 +81,8 @@ const CompanyModal = ({ open, onClose, companyId }) => {
 		passwordDefault: "",
 		numberAttendants: 1,
 		numberConections: 1,
+		numberSetores: 1,
+		status: true
 	};
 
 	const [company, setCompany] = useState(initialState);
@@ -115,7 +115,6 @@ const CompanyModal = ({ open, onClose, companyId }) => {
 			if (companyId) {
 				await api.put(`/company/${companyId}`, companyData);
 			} else {
-				console.log('Teste', companyData)
 				await api.post("/company", companyData);
 			}
 			toast.success(i18n.t("companyModal.success"));
@@ -150,7 +149,7 @@ const CompanyModal = ({ open, onClose, companyId }) => {
 						}, 400);
 					}}
 				>
-					{({ touched, errors, isSubmitting }) => (
+					{({ values, touched, errors, isSubmitting }) => (
 						<Form>
 							<DialogContent dividers>
 								<div className={classes.multFieldLine}>
@@ -164,6 +163,19 @@ const CompanyModal = ({ open, onClose, companyId }) => {
 										variant="outlined"
 										margin="dense"
 										fullWidth
+									/>
+								</div>
+								<div className={classes.multFieldLine}>
+									<FormControlLabel
+										control={
+											<Field
+												as={Switch}
+												color="primary"
+												name="status"
+												checked={values.status}
+											/>
+										}
+										label={"Ativo"}
 									/>
 								</div>
 								<div className={classes.multFieldLine}>
@@ -223,6 +235,19 @@ const CompanyModal = ({ open, onClose, companyId }) => {
 										name="numberConections"
 										error={touched.numberConections && Boolean(errors.numberConections)}
 										helperText={touched.numberConections && errors.numberConections}
+										variant="outlined"
+										margin="dense"
+										type="number"
+										fullWidth
+									/>
+								</div>
+								<div className={classes.multFieldLine}>
+									<Field
+										as={TextField}
+										label={i18n.t("companyModal.form.numberSetores")}
+										name="numberSetores"
+										error={touched.numberSetores && Boolean(errors.numberSetores)}
+										helperText={touched.numberSetores && errors.numberSetores}
 										variant="outlined"
 										margin="dense"
 										type="number"

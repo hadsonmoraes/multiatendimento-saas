@@ -12,7 +12,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Typography,
+  TableFooter,
 } from "@material-ui/core";
 import jwt_decode from "jwt-decode";
 
@@ -248,6 +248,13 @@ const Queues = () => {
               {loading && <TableRowSkeleton columns={4} />}
             </>
           </TableBody>
+					<TableFooter>
+						<TableRow>
+							<TableCell align="center">
+								{i18n.t("table.totalRecords") + (queues ? queues?.length : 0)}
+							</TableCell>  
+						</TableRow>
+					</TableFooter>
         </Table>
       </Paper>
     </MainContainer>

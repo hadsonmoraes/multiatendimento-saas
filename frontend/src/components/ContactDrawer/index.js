@@ -5,7 +5,7 @@ import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import Drawer from "@material-ui/core/Drawer";
-import Link from "@material-ui/core/Link";
+//import Link from "@material-ui/core/Link";
 import InputLabel from "@material-ui/core/InputLabel";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
@@ -18,6 +18,7 @@ import { i18n } from "../../translate/i18n";
 import ContactModal from "../ContactModal";
 import ContactDrawerSkeleton from "../ContactDrawerSkeleton";
 import MarkdownWrapper from "../MarkdownWrapper";
+import CopyToClipboard from "../CopyToClipboard";
 
 const drawerWidth = 320;
 
@@ -124,10 +125,12 @@ const ContactDrawer = ({ open, handleDrawerClose, contact, loading }) => {
 						></Avatar>
 
 						<Typography>{contact.name}</Typography>
-						
+						<Typography>
 						<Button href={`tel:${contact.number}`} variant="contained" startIcon={<WhatsAppIcon />}>
                             {contact.number}
                         </Button>
+												<CopyToClipboard content={contact.number} color="primary" />
+												</Typography>
 						<Button href={`mailto:${contact.email}`} variant="contained" startIcon={<ContactMailIcon />}>
                             {contact.email}
                         </Button>

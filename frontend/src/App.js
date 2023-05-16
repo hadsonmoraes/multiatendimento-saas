@@ -17,11 +17,12 @@ const App = () => {
         },
         "&::-webkit-scrollbar-thumb": {
           boxShadow: "inset 0 0 6px rgba(0, 0, 0, 0.3)",
-          backgroundColor: "#0A408A",
+          backgroundColor: "#78BEE1",
         },
       },
       palette: {
-        primary: { main: "#0A408A" },
+        primary: { main: "#78BEE1" },
+        secondary: { main: "#f29d0a" },
       },
     },
     locale

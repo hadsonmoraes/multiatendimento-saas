@@ -19,7 +19,7 @@ const ConstructMenu = async (companyId: number) => {
                     options += `*${bot.commandBot}* - ${bot.user.name}\n`;
                     break;
             }
-
+ 
         }
     });
     return options;

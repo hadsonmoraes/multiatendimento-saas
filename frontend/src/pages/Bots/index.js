@@ -12,6 +12,7 @@ import {
     TableCell,
     TableHead,
     TableRow,
+    TableFooter
 } from "@material-ui/core";
 
 import MainContainer from "../../components/MainContainer";
@@ -73,7 +74,6 @@ const reducer = (state, action) => {
 
     if (action.type === "DELETE_BOT") {
         const botId = action.payload;
-        console.log('BOTID => ', botId);
         const botIndex = state.findIndex((q) => q.id === botId);
         if (botIndex !== -1) {
             state.splice(botIndex, 1);
@@ -115,13 +115,13 @@ const Bots = () => {
         const socket = openSocket(process.env.REACT_APP_BACKEND_URL);
         const token = localStorage.getItem("token");
         const userJWT = jwt_decode(token);
+
         socket.on(`bot-${userJWT.companyId}`, (data) => {
             if (data.action === "update" || data.action === "create") {
                 dispatch({ type: "UPDATE_BOTS", payload: data.bot });
             }
 
             if (data.action === "delete") {
-                console.log('ACTION DELETE =>', data);
                 dispatch({ type: "DELETE_BOT", payload: data.botId });
             }
         });
@@ -174,8 +174,7 @@ const Bots = () => {
             <ConfirmationModal
                 title={
                     selectedBot &&
-                    `${i18n.t("bots.confirmationModal.deleteTitle")} ${selectedBot.commandBot
-                    }?`
+                    `${i18n.t("bots.confirmationModal.deleteTitle")} ${selectedBot.commandBot}?`
                 }
                 open={confirmModalOpen}
                 onClose={handleCloseConfirmationModal}
@@ -233,10 +232,10 @@ const Bots = () => {
                                 <TableRow key={bot.id}>
                                     <TableCell align="left">{bot.commandBot}</TableCell>
                                     <TableCell align="center">
-                                        {bot.commandType == '1' ? 'Informativo' :
-                                            bot.commandType == '2' ? 'Menu' :
-                                                bot.commandType == '3' ? 'Setor' :
-                                                    bot.commandType == '4' ? 'Atendente' :
+                                        {bot.commandType === 1 ? `${i18n.t("botModal.form.commandType.options.1")}` :
+                                            bot.commandType === 2 ? `${i18n.t("botModal.form.commandType.options.2")}` :
+                                                bot.commandType === 3 ? `${i18n.t("botModal.form.commandType.options.3")}` :
+                                                    bot.commandType === 4 ? `${i18n.t("botModal.form.commandType.options.4")}` :
                                                         'Erro'}
                                     </TableCell>
                                     <TableCell align="center">
@@ -262,6 +261,13 @@ const Bots = () => {
                             {loading && <TableRowSkeleton columns={3} />}
                         </>
                     </TableBody>
+                    <TableFooter>
+                        <TableRow>
+                            <TableCell align="center">
+                                {i18n.t("table.totalRecords") + (bots ? bots?.length : 0)}
+                            </TableCell>
+                        </TableRow>
+                    </TableFooter>
                 </Table>
             </Paper>
         </MainContainer>

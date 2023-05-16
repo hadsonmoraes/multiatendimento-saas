@@ -1,5 +1,6 @@
 import { getIO } from "../../libs/socket";
 import Contact from "../../models/Contact";
+import { logger } from "../../utils/logger";
 
 interface ExtraInfo {
   name: string;
@@ -14,7 +15,7 @@ interface Request {
   commandBot?: string;
   profilePicUrl?: string;
   extraInfo?: ExtraInfo[];
-  companyId: number;
+  companyId?: number;
 }
 
 const CreateOrUpdateContactService = async ({
@@ -24,14 +25,26 @@ const CreateOrUpdateContactService = async ({
   isGroup,
   email = "",
   commandBot = "",
-  extraInfo = [], companyId
+  extraInfo = [],
+  companyId
 }: Request): Promise<Contact> => {
+  logger.info('Reading params from contact where the business is: ' + companyId);
+
   const number = isGroup ? rawNumber : rawNumber.replace(/[^0-9]/g, "");
 
   const io = getIO();
   let contact: Contact | null;
 
-  contact = await Contact.findOne({ where: { number } });
+  logger.warn('Searching contact the number ' + number + ' and business: ' + companyId);
+
+  contact = await Contact.findOne({
+    where: {
+      companyId, number
+    }
+  });
+
+  if (!profilePicUrl)
+    profilePicUrl = "/default-profile.png"; // Foto de perfil padrão   
 
   if (contact) {
     if (contact.companyId === null)
@@ -50,11 +63,12 @@ const CreateOrUpdateContactService = async ({
       profilePicUrl,
       email,
       commandBot,
+      companyId,
       isGroup,
       extraInfo
     });
 
-    io.emit("contact", {
+    io.emit(`contact-${contact.companyId}`, {
       action: "create",
       contact
     });

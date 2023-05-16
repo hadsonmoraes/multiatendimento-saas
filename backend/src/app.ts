@@ -12,7 +12,7 @@ import AppError from "./errors/AppError";
 import routes from "./routes";
 import { logger } from "./utils/logger";
 
-Sentry.init({ dsn: process.env.SENTRY_DSN });
+Sentry.init({ dsn: process.env.SENTRY_DSN }); 
 
 const app = express();
 

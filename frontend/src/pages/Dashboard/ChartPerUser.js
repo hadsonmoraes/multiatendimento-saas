@@ -11,14 +11,16 @@ import { useTheme } from "@material-ui/core/styles";
 //} from "recharts";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-import { i18n } from "../../translate/i18n";
 
-import Title from "./Title";
+// import { i18n } from "../../translate/i18n";
+
+// import Title from "./Title";
 
 const ChartPerUser = ({ tickets, users = null }) => {
     const theme = useTheme();
 
     const [chartData, setChartData] = useState([]);
+
 
     useEffect(() => {
         let arr = [{ name: 'Chatbot', qt: 0 }];
@@ -43,6 +45,7 @@ const ChartPerUser = ({ tickets, users = null }) => {
 
             return aux;
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tickets]);
 
     return (

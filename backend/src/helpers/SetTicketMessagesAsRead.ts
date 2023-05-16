@@ -4,7 +4,7 @@ import Ticket from "../models/Ticket";
 import { logger } from "../utils/logger";
 import GetTicketWbot from "./GetTicketWbot";
 
-const SetTicketMessagesAsRead = async (ticket: Ticket): Promise<void> => {
+const SetTicketMessagesAsRead = async (ticket: Ticket): Promise<void> => {  
   await Message.update(
     { read: true },
     {

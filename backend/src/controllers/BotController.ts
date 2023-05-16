@@ -9,7 +9,6 @@ import jwt_decode from "jwt-decode";
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const bots = await ListBotsService(userJWT.companyId);
 
@@ -18,7 +17,6 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const { commandBot, commandType, descriptionBot, queueId, showMessage, userId } = req.body;
 
@@ -47,10 +45,12 @@ export const update = async (
 ): Promise<Response> => {
   const { botId } = req.params;
 
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
+
   const bot = await UpdateBotService(botId, req.body);
 
   const io = getIO();
-  io.emit("bot", {
+  io.emit(`bot-${userJWT.companyId}`, {
     action: "update",
     bot
   });
@@ -64,10 +64,12 @@ export const remove = async (
 ): Promise<Response> => {
   const { botId } = req.params;
 
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
+
   await DeleteBotService(botId);
 
   const io = getIO();
-  io.emit("bot", {
+  io.emit(`bot-${userJWT.companyId}`, {
     action: "delete",
     botId: +botId
   });

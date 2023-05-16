@@ -72,7 +72,7 @@ const CreateWhatsAppService = async ({
   if (queueIds.length > 1 && !greetingMessage) {
     throw new AppError("ERR_WAPP_GREETING_REQUIRED");
   }
-  console.log('Oiiii::: ', companyId)
+
   const whatsapp = await Whatsapp.create(
     {
       name,

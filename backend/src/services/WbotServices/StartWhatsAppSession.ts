@@ -8,7 +8,6 @@ import { logger } from "../../utils/logger";
 export const StartWhatsAppSession = async (
   whatsapp: Whatsapp
 ): Promise<void> => {
-  console.log('ddddd')
   await whatsapp.update({ status: "OPENING" });
 
   const io = getIO();

@@ -18,10 +18,8 @@ const ListContactsService = async ({
   pageNumber = "1",
   companyId = -1
 }: Request): Promise<Response> => {
-  let whereCondition = {
+  let whereCondition = {};
 
-  };
-  console.log('Oiiii::::: ', companyId)
   if (companyId > 0) {
     whereCondition = {
       [Op.or]: [
@@ -47,11 +45,12 @@ const ListContactsService = async ({
           )
         },
         { number: { [Op.like]: `%${searchParam.toLowerCase().trim()}%` } }
-      ]
+      ],
+      companyId: companyId
     };
   }
 
-  const limit = 20;
+  const limit = 2000;
   const offset = limit * (+pageNumber - 1);
 
   const { count, rows: contacts } = await Contact.findAndCountAll({

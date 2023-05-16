@@ -8,6 +8,7 @@ import Queue from "../../models/Queue";
 import User from "../../models/User";
 import ShowUserService from "../UserServices/ShowUserService";
 import Whatsapp from "../../models/Whatsapp";
+import { logger } from "../../utils/logger";
 
 interface Request {
   searchParam?: string;
@@ -38,6 +39,9 @@ const ListTicketsService = async ({
   withUnreadMessages,
   companyId = -1
 }: Request): Promise<Response> => {
+  const statusParam = status ? status : 'pending';
+  logger.warn('Requisited ticket list with status ' + statusParam + ', userId ' + userId + ' and business: ' + companyId);
+
   let whereCondition: Filterable["where"] = {
     [Op.or]: [{ userId }, { status: "pending" }],
     queueId: { [Op.or]: [queueIds, null] },
@@ -127,10 +131,11 @@ const ListTicketsService = async ({
   }
 
   if (date) {
+    const dateParse = parseISO(date);
     whereCondition = {
+      companyId: companyId ? companyId : -1,
       createdAt: {
-        [Op.between]: [+startOfDay(parseISO(date)), +endOfDay(parseISO(date))],
-        [Op.or]: [[companyId, -1]]
+        [Op.between]: [startOfDay(dateParse), endOfDay(dateParse)],
       }
     };
   }
@@ -146,7 +151,7 @@ const ListTicketsService = async ({
     };
   }
 
-  const limit = 40;
+  const limit = 50;
   const offset = limit * (+pageNumber - 1);
 
   const { count, rows: tickets } = await Ticket.findAndCountAll({
@@ -159,7 +164,6 @@ const ListTicketsService = async ({
   });
 
   const hasMore = count > offset + tickets.length;
-
   return {
     tickets,
     count,

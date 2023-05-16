@@ -25,7 +25,7 @@ interface WhatsappData {
 export const index = async (req: Request, res: Response): Promise<Response> => {
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
+
   const whatsapps = await ListWhatsAppsService(userJWT.companyId);
 
   return res.status(200).json(whatsapps);
@@ -34,13 +34,10 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 export const store = async (req: Request, res: Response): Promise<Response> => {
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const WhatsApps = await ListWhatsAppsService(userJWT.companyId);
   const company: any = await ShowCompanyService(userJWT.companyId)
-  console.log("Caraio1", company.dataValues.numberConections)
-  console.log("Caraio1", company.dataValues)
-  console.log("Caraio2", WhatsApps.length)
+
   if (WhatsApps.length >= Number(company.dataValues.numberConections)) {
     throw new AppError("ERR_NO_PERMISSION", 403);
   }
@@ -96,6 +93,10 @@ export const update = async (
 ): Promise<Response> => {
   const { whatsappId } = req.params;
   const whatsappData = req.body;
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
+
+  if (!whatsappData)
+    whatsappData.companyId = userJWT.companyId;
 
   const { whatsapp, oldDefaultWhatsapp } = await UpdateWhatsAppService({
     whatsappData,
@@ -103,7 +104,7 @@ export const update = async (
   });
 
   const io = getIO();
-  io.emit("whatsapp", {
+  io.emit(`whatsapp-${userJWT.companyId}`, {
     action: "update",
     whatsapp
   });
@@ -125,7 +126,6 @@ export const remove = async (
   const { whatsappId } = req.params;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   await DeleteWhatsAppService(whatsappId);
   removeWbot(+whatsappId);

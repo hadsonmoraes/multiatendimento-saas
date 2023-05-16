@@ -75,7 +75,6 @@ const useWhatsApps = () => {
 
 	useEffect(() => {
 		const socket = openSocket();
-		console.log("socket3", localStorage.getItem("token"));
 
 		if (localStorage.getItem("token") !== null) {
 			const token = localStorage.getItem("token");
@@ -87,13 +86,13 @@ const useWhatsApps = () => {
 				}
 			});
 
-			socket.on("whatsapp", data => {
+			socket.on(`whatsapp-${userJWT.companyId}`, data => {
 				if (data.action === "delete") {
 					dispatch({ type: "DELETE_WHATSAPPS", payload: data.whatsappId });
 				}
 			});
 
-			socket.on("whatsappSession", data => {
+			socket.on(`whatsappSession-${userJWT.companyId}`, data => {
 				if (data.action === "update") {
 					dispatch({ type: "UPDATE_SESSION", payload: data.session });
 				}

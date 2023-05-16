@@ -10,5 +10,12 @@
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
+  },
+  "baseUrl": ".",
+  "caminhos": {
+    "*": [
+      "*",
+      "componentes/*"
+    ]
   }
 }

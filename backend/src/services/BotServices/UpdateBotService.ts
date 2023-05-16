@@ -18,7 +18,7 @@ const UpdateBotService = async (
     botData: BotData
 ): Promise<Bot> => {
     const { commandBot, commandType, descriptionBot, queueId, showMessage, userId } = botData;
-    console.log('botData => ', botData);
+
     const botSchema = Yup.object().shape({
         commandBot: Yup.string()
             .required("ERR_BOT_INVALID_COMMAND"),

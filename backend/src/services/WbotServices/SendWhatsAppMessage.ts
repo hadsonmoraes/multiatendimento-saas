@@ -20,17 +20,19 @@ const SendWhatsAppMessage = async ({
   quotedMsg
 }: Request): Promise<WbotMessage> => {
   let quotedMsgSerializedId: string | undefined;
+  
+  
   if (quotedMsg) {
     await GetWbotMessage(ticket, quotedMsg.id);
     quotedMsgSerializedId = SerializeWbotMsgId(ticket, quotedMsg);
   }
 
-  const wbot = await GetTicketWbot(ticket);
+      const wbot = await GetTicketWbot(ticket);
 
   try {
     const sentMessage = await wbot.sendMessage(
       `${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,
-      formatBody(body, ticket.contact),
+      formatBody(body, ticket),
       {
         quotedMessageId: quotedMsgSerializedId,
         linkPreview: false

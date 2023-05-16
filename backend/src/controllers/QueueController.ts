@@ -6,11 +6,12 @@ import ListQueuesService from "../services/QueueService/ListQueuesService";
 import ShowQueueService from "../services/QueueService/ShowQueueService";
 import UpdateQueueService from "../services/QueueService/UpdateQueueService";
 import jwt_decode from "jwt-decode";
+import ShowCompanyService from "../services/CompanyService/ShowCompanyService";
+import AppError from "../errors/AppError";
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const queues = await ListQueuesService(userJWT.companyId);
 
@@ -18,12 +19,23 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 };
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
-  const { name, color, greetingMessage } = req.body;
+  const { name, color, greetingMessage, startWork, endWork, absenceMessage } = req.body;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
-  const queue = await CreateQueueService({ name, color, greetingMessage, companyId: userJWT.companyId });
+  const queues = await ListQueuesService(userJWT.companyId);
+  const company: any = await ShowCompanyService(userJWT.companyId)
+
+  const s1: number = Number(queues.length);
+  const s2: number = Number(company.dataValues.numberSetores);
+
+  if (s1 >= s2) {
+    throw new AppError("ERR_NO_LIMIT_QUEUE", 403);
+  }
+
+  const queue = await CreateQueueService({
+    name, color, greetingMessage, companyId: userJWT.companyId, startWork, endWork, absenceMessage
+  });
 
   const io = getIO();
   io.emit(`queue-${userJWT.companyId}`, {
@@ -48,10 +60,12 @@ export const update = async (
 ): Promise<Response> => {
   const { queueId } = req.params;
 
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
+
   const queue = await UpdateQueueService(queueId, req.body);
 
   const io = getIO();
-  io.emit("queue", {
+  io.emit(`queue-${userJWT.companyId}`, {
     action: "update",
     queue
   });
@@ -66,7 +80,6 @@ export const remove = async (
   const { queueId } = req.params;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   await DeleteQueueService(queueId);
 

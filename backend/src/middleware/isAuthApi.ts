@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from "express";
 
 import AppError from "../errors/AppError";
 import ListSettingByValueService from "../services/SettingServices/ListSettingByValueService";
+import jwt_decode from "jwt-decode";
+import { logger } from "../utils/logger";
 
-const isAuthApi = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+const isAuthApi = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  logger.warn('Access systema by Auth api Key...');
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -15,9 +15,12 @@ const isAuthApi = async (
   }
 
   const [, token] = authHeader.split(" ");
+  const userJWT: any = token && await jwt_decode(token); 
 
   try {
-    const getToken = await ListSettingByValueService(token);
+    logger.warn('Try with business in access token is: ' + userJWT.companyId);
+
+    const getToken = await ListSettingByValueService(token, userJWT.companyId);
     if (!getToken) {
       throw new AppError("ERR_SESSION_EXPIRED", 401);
     }
@@ -25,8 +28,11 @@ const isAuthApi = async (
     if (getToken.value !== token) {
       throw new AppError("ERR_SESSION_EXPIRED", 401);
     }
+
+    if (getToken.companyId !== userJWT.companyId) {
+      throw new AppError("ERR_SESSION_EXPIRED", 401);
+    }    
   } catch (err) {
-    console.log(err);
     throw new AppError(
       "Invalid token. We'll try to assign a new one on next request",
       403

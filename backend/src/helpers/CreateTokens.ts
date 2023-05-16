@@ -13,7 +13,7 @@ export const createAccessToken = (user: User): string => {
     }
   );
 };
-
+ 
 export const createRefreshToken = (user: User): string => {
   const { refreshSecret, refreshExpiresIn } = authConfig;
 

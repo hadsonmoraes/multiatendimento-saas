@@ -9,6 +9,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import TableFooter from "@material-ui/core/TableFooter";
 import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
 import Avatar from "@material-ui/core/Avatar";
@@ -35,6 +36,14 @@ import MainContainer from "../../components/MainContainer";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { Can } from "../../components/Can";
+import NewTicketModalSingle from "../../components/NewTicketModalSingle";
+import { CSVLink } from "react-csv";
+
+import {
+  AddCircleOutline,
+  ImportContacts,
+  Archive,
+} from "@material-ui/icons";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_CONTACTS") {
@@ -87,14 +96,21 @@ const useStyles = makeStyles((theme) => ({
     overflowY: "scroll",
     ...theme.scrollbarStyles,
   },
+  csvbtn: {
+    textDecoration: 'none'
+  },
+  avatar: {
+    width: "50px",
+    height: "50px",
+    borderRadius: "25%"
+  }
 }));
+
 
 const Contacts = () => {
   const classes = useStyles();
   const history = useHistory();
-
   const { user } = useContext(AuthContext);
-
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [searchParam, setSearchParam] = useState("");
@@ -104,6 +120,7 @@ const Contacts = () => {
   const [deletingContact, setDeletingContact] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [newTicketModalSingleOpen, setNewTicketModalSingleOpen] = useState(false);
 
   useEffect(() => {
     dispatch({ type: "RESET" });
@@ -165,22 +182,6 @@ const Contacts = () => {
     setContactModalOpen(false);
   };
 
-  const handleSaveTicket = async (contactId) => {
-    if (!contactId) return;
-    setLoading(true);
-    try {
-      const { data: ticket } = await api.post("/tickets", {
-        contactId: contactId,
-        userId: user?.id,
-        status: "open",
-      });
-      history.push(`/tickets/${ticket.id}`);
-    } catch (err) {
-      toastError(err);
-    }
-    setLoading(false);
-  };
-
   const hadleEditContact = (contactId) => {
     setSelectedContactId(contactId);
     setContactModalOpen(true);
@@ -197,6 +198,7 @@ const Contacts = () => {
     setSearchParam("");
     setPageNumber(1);
   };
+
 
   const handleimportContact = async () => {
     try {
@@ -232,22 +234,28 @@ const Contacts = () => {
           deletingContact
             ? `${i18n.t("contacts.confirmationModal.deleteTitle")} ${deletingContact.name
             }?`
-            : `${i18n.t("contacts.confirmationModal.importTitlte")}`
+              : `${i18n.t("contacts.confirmationModal.importTitlte")}`
         }
         open={confirmOpen}
         onClose={setConfirmOpen}
         onConfirm={(e) =>
           deletingContact
             ? handleDeleteContact(deletingContact.id)
-            : handleimportContact()
+              : handleimportContact()
         }
       >
         {deletingContact
           ? `${i18n.t("contacts.confirmationModal.deleteMessage")}`
-          : `${i18n.t("contacts.confirmationModal.importMessage")}`}
+            : `${i18n.t("contacts.confirmationModal.importMessage")}`}
       </ConfirmationModal>
+      <NewTicketModalSingle
+        selectedContact={selectedContactId}
+        modalOpen={newTicketModalSingleOpen}
+        onClose={(e) => setNewTicketModalSingleOpen(false)}
+      >
+      </NewTicketModalSingle>
       <MainHeader>
-        <Title>{i18n.t("contacts.title")}</Title>
+        <Title>{i18n.t("contacts.title")} </Title>
         <MainHeaderButtonsWrapper>
           <TextField
             placeholder={i18n.t("contacts.searchPlaceholder")}
@@ -267,15 +275,36 @@ const Contacts = () => {
             color="primary"
             onClick={(e) => setConfirmOpen(true)}
           >
-            {i18n.t("contacts.buttons.import")}
+            <ImportContacts /> {i18n.t("contacts.buttons.import")}
           </Button>
           <Button
             variant="contained"
             color="primary"
             onClick={handleOpenContactModal}
           >
-            {i18n.t("contacts.buttons.add")}
+            <AddCircleOutline /> {i18n.t("contacts.buttons.add")}
           </Button>
+
+
+          <Button style={{ height: '36.50px' }}
+            variant="contained"
+            color="primary"
+          >
+            <CSVLink style={{ display: 'flex', color: 'black' }}
+              className={classes.csvbtn}
+              separator=";"
+              filename={'MultiatendimentoTnet-contatos.csv'}
+              data={
+                contacts.map((contact) => ({
+                  name: contact.name,
+                  number: contact.number,
+                  email: contact.email
+                }))
+              }>
+              <Archive /> {i18n.t("contacts.buttons.export")}
+            </CSVLink>
+          </Button>
+        
         </MainHeaderButtonsWrapper>
       </MainHeader>
       <Paper
@@ -304,7 +333,7 @@ const Contacts = () => {
               {contacts.map((contact) => (
                 <TableRow key={contact.id}>
                   <TableCell style={{ paddingRight: 0 }}>
-                    {<Avatar src={contact.profilePicUrl} />}
+                    {<Avatar src={contact.profilePicUrl} className={classes.avatar} />}
                   </TableCell>
                   <TableCell>{contact.name}</TableCell>
                   <TableCell align="center">{contact.number}</TableCell>
@@ -312,7 +341,10 @@ const Contacts = () => {
                   <TableCell align="center">
                     <IconButton
                       size="small"
-                      onClick={() => handleSaveTicket(contact.id)}
+                      onClick={() => {
+                        setSelectedContactId(contact.id);
+                        setNewTicketModalSingleOpen(contact.id);
+                      }}
                     >
                       <WhatsAppIcon />
                     </IconButton>
@@ -340,12 +372,19 @@ const Contacts = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton avatar columns={3} />}
+              {loading && <TableRowSkeleton avatar columns={4} />}
             </>
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell align="center">
+                {i18n.t("table.totalRecords") + (contacts ? contacts?.length : 0)}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </Paper>
-    </MainContainer>
+    </MainContainer >
   );
 };
 

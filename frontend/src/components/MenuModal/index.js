@@ -1,11 +1,10 @@
-import React, { useReducer, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Fluxograma from "@dabeng/react-orgchart";
 import MyNode from "./my-node";
 import { i18n } from "../../translate/i18n";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { makeStyles } from "@material-ui/core/styles";
-import api from "../../services/api";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
 import toastError from "../../errors/toastError";
 
@@ -16,7 +15,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-let dataset = { id: 1170, title: "CHATBOT", name: "Início" }; 
+let dataset = { id: 1170, title: "CHATBOT", name: "Início" };
 
 const MenuModal = ({ open, onClose, data }) => {
 
@@ -30,14 +29,16 @@ const MenuModal = ({ open, onClose, data }) => {
             setLoading(true);
             try {
                 //const { data } = await api.get("/bot");
-                console.log('DATA >> ', data);
                 dataset = { id: 1170, title: "CHATBOT", name: "Início" };
                 dataset.children = [];
                 data.forEach(element => {
-                    const descricao = element.commandType === 1 ? { msg: element.descriptionBot, type: 'Informativo' } :
-                        element.commandType === 2 ? { msg: element.descriptionBot, type: 'Menu' } :
-                            element.commandType === 3 ? { msg: element.queue.name, type: 'Setor' } :
-                                element.commandType === 4 ? { msg: element.user.name, type: 'Atendente' } : { msg: 'Erro', type: 'Erro' };
+                    // eslint-disable-next-line
+                    const descricao = //
+                        element.commandType === 1 ? { msg: element.descriptionBot, type: `${i18n.t("botModal.form.commandType.options.1")}` } :
+                            element.commandType === 2 ? { msg: element.descriptionBot, type: `${i18n.t("botModal.form.commandType.options.2")}` } :
+                                element.commandType === 3 ? { msg: element.queue.name, type: `${i18n.t("botModal.form.commandType.options.3")}` } :
+                                    element.commandType === 4 ? { msg: element.user.name, type: `${i18n.t("botModal.form.commandType.options.4")}` } : //
+                                        { msg: 'Erro', type: 'Erro' };
 
                     let qtComandos = element.commandBot.split('.').length;
                     let code = "";
@@ -54,6 +55,7 @@ const MenuModal = ({ open, onClose, data }) => {
                         const obj = "{ id: parseInt(element.commandBot.split('.')[qtComandos - 1]), title: element.commandBot.split('.')[qtComandos - 1] + '-' + descricao.type, name: descricao.msg }";
                         code += `${path}[parseInt(element.commandBot.split('.')[qtComandos - 1])] = ${obj};\n`;
                     }
+                    // eslint-disable-next-line
                     eval(code);
                 });
                 setLoading(false);

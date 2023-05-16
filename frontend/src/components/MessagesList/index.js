@@ -5,8 +5,7 @@ import openSocket from "../../services/socket-io";
 import clsx from "clsx";
 import jwt_decode from "jwt-decode";
 
-
-import { green } from "@material-ui/core/colors";
+import { blue, green, red } from "@material-ui/core/colors";
 import {
   Button,
   CircularProgress,
@@ -32,6 +31,7 @@ import whatsBackground from "../../assets/wa-background.png";
 
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
+import { toast } from "react-toastify";
 
 const useStyles = makeStyles((theme) => ({
   ticketNunber: {
@@ -268,10 +268,15 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 18,
     verticalAlign: "middle",
     marginRight: 4,
+    color: red[200]
+  },
+
+  deletedMsg: {
+    color: red[200]
   },
 
   ackDoneAllIcon: {
-    color: green[500],
+    color: blue[500],
     fontSize: 18,
     verticalAlign: "middle",
     marginLeft: 4,
@@ -316,9 +321,20 @@ const reducer = (state, action) => {
     return [...state];
   }
 
+  function ToastDisplay(props) {
+    return <><h4>Mensagem apagada:</h4><p>{props.body}</p></>;
+  }
+
   if (action.type === "UPDATE_MESSAGE") {
     const messageToUpdate = action.payload;
     const messageIndex = state.findIndex((m) => m.id === messageToUpdate.id);
+
+    if (messageToUpdate.isDeleted === true) {
+      toast.info(<ToastDisplay
+        body={messageToUpdate.body}
+      >
+      </ToastDisplay>);
+    }
 
     if (messageIndex !== -1) {
       state[messageIndex] = messageToUpdate;
@@ -392,7 +408,6 @@ const MessagesList = ({ ticketId, isGroup }) => {
     socket.on("connect", () => socket.emit("joinChatBox", ticketId));
 
     socket.on(`appMessage-${userJWT.companyId}`, (data) => {
-      console.log(data);
       if (data.action === "create") {
         dispatch({ type: "ADD_MESSAGE", payload: data.message });
         scrollToBottom();
@@ -458,8 +473,6 @@ const MessagesList = ({ ticketId, isGroup }) => {
       return <LocationPreview image={imageLocation} link={linkLocation} description={descriptionLocation} />
     }
     else if (message.mediaType === "vcard") {
-      //console.log("vcard")
-      //console.log(message)
       let array = message.body.split("\n");
       let obj = [];
       let contact = "";
@@ -478,8 +491,6 @@ const MessagesList = ({ ticketId, isGroup }) => {
       return <VcardPreview contact={contact} numbers={obj[0].number} />
     }
     /*else if (message.mediaType === "multi_vcard") {
-      console.log("multi_vcard")
-      console.log(message)
     	
       if(message.body !== null && message.body !== "") {
         let newBody = JSON.parse(message.body)
@@ -699,6 +710,18 @@ const MessagesList = ({ ticketId, isGroup }) => {
                     {message.contact?.name}
                   </span>
                 )}
+                {message.isDeleted && (
+                  <div>
+                    <span className={classes.deletedMsg}>
+                      <Block
+                        color="disabled"
+                        fontSize="small"
+                        className={classes.deletedIcon}
+                      />
+                      Mensagem apagada
+                    </span>
+                  </div>
+                )}
                 {(message.mediaUrl || message.mediaType === "location" || message.mediaType === "vcard"
                   //|| message.mediaType === "multi_vcard" 
                 ) && checkMessageMedia(message)}
@@ -752,7 +775,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
                   </span>
                 </div>
               </div>
-            </React.Fragment>
+            </React.Fragment >
           );
         }
       });

@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { Field } from "formik";
+import React, { useEffect, useState } from "react"; 
 import { makeStyles } from "@material-ui/core/styles";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
+import InputLabel from "@material-ui/core/InputLabel"; 
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import toastError from "../../errors/toastError";
 import api from "../../services/api";
 import { i18n } from "../../translate/i18n";
+import { MenuItem } from "@material-ui/core";
+import { Field } from "formik";
 
 const useStyles = makeStyles(theme => ({
 	formControl: {
-		margin: theme.spacing(1),
+		margin: theme.spacing(1), 
 		minWidth: 120,
 	},
 }));
@@ -23,14 +23,12 @@ const QueueSelectSingle = () => {
     useEffect(() => {
         (async () => {
             try {
-                const { data } = await api.get("/queue");
-                //console.log('Queue => ', data);
-                //console.log('Queue Type => ', typeof (data));
+                const { data } = await api.get("/queue"); 
                 setQueues(data);
             } catch (err) {
                 toastError(err);
             }
-        })();
+        })(); 
     }, []);
 
     return (
@@ -41,21 +39,20 @@ const QueueSelectSingle = () => {
                 margin="dense"
                 fullWidth
             >
-                <InputLabel id="queue-selection-input-label">
-                    {i18n.t("queueSelect.inputLabel")}
-                </InputLabel>
-
+                <InputLabel id="queue-selection-input-label">{i18n.t("queueSelect.inputLabel")}</InputLabel>
                 <Field
+                    autoHighlight
+                    required
+                    fullWidth 	
                     as={Select}
                     label={i18n.t("queueSelect.inputLabel")}
                     name="queueId"
                     labelId="queue-selection-label"
                     id="queue-selection"
+                    defaultValue="Selecione um departamento"
                 >
                     {queues.map(queue => (
-                        <MenuItem key={queue.id} value={queue.id}>
-                            {queue.name}
-                        </MenuItem>
+                        <MenuItem key={queue.id} value={queue.id}>{queue.name}</MenuItem>
                     ))}
                 </Field>
 

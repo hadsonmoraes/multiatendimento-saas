@@ -13,6 +13,7 @@ import {
   TableRow,
   InputAdornment,
   TextField,
+  TableFooter,
 } from "@material-ui/core";
 import { Edit, DeleteOutline } from "@material-ui/icons";
 import SearchIcon from "@material-ui/icons/Search";
@@ -281,6 +282,13 @@ const QuickAnswers = () => {
               {loading && <TableRowSkeleton columns={3} />}
             </>
           </TableBody>
+					<TableFooter>
+						<TableRow>
+							<TableCell align="center">
+								{i18n.t("table.totalRecords") + (quickAnswers ? quickAnswers?.length : 0)}
+							</TableCell>  
+						</TableRow>
+					</TableFooter>
         </Table>
       </Paper>
     </MainContainer>

@@ -118,6 +118,7 @@ const TicketsManager = () => {
   useEffect(() => {
     if (tab === "search") {
       searchInputRef.current.focus();
+       setSearchParam("");
     }
   }, [tab]);
 
@@ -164,7 +165,7 @@ const TicketsManager = () => {
           value={tab}
           onChange={handleChangeTab}
           variant="fullWidth"
-          indicatorColor="primary"
+          indicatorColor="secondary"
           textColor="primary"
           aria-label="icon label tabs example"
         >
@@ -243,13 +244,13 @@ const TicketsManager = () => {
         <Tabs
           value={tabOpen}
           onChange={handleChangeTabOpen}
-          indicatorColor="primary"
+          indicatorColor="secondary"
           textColor="primary"
           variant="fullWidth"
         >
           <Tab
             label={
-              <Badge
+              <Badge overlap="rectangular"
                 className={classes.badge}
                 badgeContent={openCount}
                 color="primary"
@@ -261,7 +262,7 @@ const TicketsManager = () => {
           />
           <Tab
             label={
-              <Badge
+              <Badge overlap="rectangular"
                 className={classes.badge}
                 badgeContent={pendingCount}
                 color="secondary"
@@ -289,18 +290,39 @@ const TicketsManager = () => {
         </Paper>
       </TabPanel>
       <TabPanel value={tab} name="closed" className={classes.ticketsWrapper}>
-        <TicketsList
-          status="closed"
-          showAll={true}
-          selectedQueueIds={selectedQueueIds}
-        />
+        {user.profile.toUpperCase() === "ADMIN" && (
+          <TicketsList
+            status="closed"
+            showAll={true}
+            selectedQueueIds={selectedQueueIds}
+          />
+        )}
+
+        {/* User consegue ver somente os seus atendimentos Resolvidos */}
+        {user.profile.toUpperCase() === "USER" && (
+          <TicketsList
+            status="closed"
+            showAll={false}
+            selectedQueueIds={selectedQueueIds}
+          />
+        )}
       </TabPanel>
       <TabPanel value={tab} name="search" className={classes.ticketsWrapper}>
-        <TicketsList
-          searchParam={searchParam}
-          showAll={true}
-          selectedQueueIds={selectedQueueIds}
-        />
+        {user.profile.toUpperCase() === "ADMIN" && (
+          <TicketsList
+            searchParam={searchParam}
+            showAll={true}
+            selectedQueueIds={selectedQueueIds}
+          />
+        )}
+
+        {user.profile.toUpperCase() === "USER" && (
+          <TicketsList
+            searchParam={searchParam}
+            showAll={false}
+            selectedQueueIds={selectedQueueIds}
+          />
+        )}
       </TabPanel>
     </Paper>
   );

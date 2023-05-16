@@ -3,7 +3,7 @@ import AppError from "../../errors/AppError";
 
 const ShowCompanyService = async (id: string | number): Promise<Company> => {
   const contact = await Company.findByPk(id, {
-    attributes: ["id", "name", "email", "numberAttendants", "numberConections"]
+    attributes: ["id", "name", "email", "numberAttendants", "numberConections", "numberSetores", "status"],
   });
 
   if (!contact) {

@@ -72,7 +72,7 @@ const CommandModal = ({ open, onClose, commandId }) => {
 		queueId: null,
 	};
 
-	const [selectedCommandTypeId, setSelectedCommandTypeId] = useState("");
+	//const [selectedCommandTypeId, setSelectedCommandTypeId] = useState("");
 	const [showFields, setShowFields] = useState({ queues: false, users: false, message: false, descriptionBot: false, commandType: "" });
 	const [command, setCommand] = useState(initialState);
 	const greetingRef = useRef();
@@ -102,6 +102,8 @@ const CommandModal = ({ open, onClose, commandId }) => {
 					case 4:
 						setShowFields({ queues: false, users: true, message: true, descriptionBot: false, commandType: data.commandType });
 						break;
+					default:
+						break;
 				}
 			} catch (err) {
 				toastError(err);
@@ -120,13 +122,13 @@ const CommandModal = ({ open, onClose, commandId }) => {
 		const commandData = { ...values };
 		try {
 			commandData.commandType = showFields.commandType;
-			console.log('Dados => ', commandData);
+
 			if (commandId) {
 				await api.put(`/bot/${commandId}`, commandData);
 			} else {
 				await api.post("/bot", commandData);
 			}
-			toast.success(i18n.t("botModal.success"));
+			toast.success(i18n.t("botModal.form.messages.saved"));
 		} catch (err) {
 			toastError(err);
 		}
@@ -211,7 +213,7 @@ const CommandModal = ({ open, onClose, commandId }) => {
 									disabled={isSubmitting}
 									variant="outlined"
 								>
-									{i18n.t("botModal.buttons.cancel")}
+									{i18n.t("botModal.form.buttons.cancel")}
 								</Button>
 								<Button
 									type="submit"
@@ -221,8 +223,8 @@ const CommandModal = ({ open, onClose, commandId }) => {
 									className={classes.btnWrapper}
 								>
 									{commandId
-										? `${i18n.t("botModal.buttons.okEdit")}`
-										: `${i18n.t("botModal.buttons.okAdd")}`}
+										? `${i18n.t("botModal.form.buttons.okEdit")}`
+										: `${i18n.t("botModal.form.buttons.okAdd")}`}
 									{isSubmitting && (
 										<CircularProgress
 											size={24}

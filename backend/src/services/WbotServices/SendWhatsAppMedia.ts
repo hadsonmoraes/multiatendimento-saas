@@ -20,7 +20,7 @@ const SendWhatsAppMedia = async ({
   try {
     const wbot = await GetTicketWbot(ticket);
     const hasBody = body
-      ? formatBody(body as string, ticket.contact)
+      ? formatBody(body as string, ticket)
       : undefined;
 
     const newMedia = MessageMedia.fromFilePath(media.path);
@@ -39,7 +39,6 @@ const SendWhatsAppMedia = async ({
 
     return sentMessage;
   } catch (err) {
-    console.log(err);
     throw new AppError("ERR_SENDING_WAPP_MSG");
   }
 };

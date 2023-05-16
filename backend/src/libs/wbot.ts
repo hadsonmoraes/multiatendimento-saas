@@ -1,4 +1,4 @@
-import qrCode from "qrcode-terminal";
+//import qrCode from "qrcode-terminal";
 import { Client, LocalAuth } from "whatsapp-web.js";
 import { getIO } from "./socket";
 import Whatsapp from "../models/Whatsapp";
@@ -82,8 +82,12 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
       wbot.initialize();
 
       wbot.on("qr", async qr => {
-        logger.info("Session:", sessionName);
-        qrCode.generate(qr, { small: true });
+        if (sessionName !== '')
+          logger.info("Session:", sessionName);
+
+        // if (process.env.GERA_QRCODE_TERMINAL = 'S')
+        //   qrCode.generate(qr, { small: true }); 
+
         await whatsapp.update({ qrcode: qr, status: "qrcode", retries: 0 });
 
         const sessionIndex = sessions.findIndex(s => s.id === whatsapp.id);
@@ -131,7 +135,8 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
         await whatsapp.update({
           status: "CONNECTED",
           qrcode: "",
-          retries: 0
+          retries: 0,
+          number: wbot.info.wid._serialized.split("@")[0]
         });
 
         io.emit("whatsappSession", {
@@ -157,6 +162,8 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
 };
 
 export const getWbot = (whatsappId: number): Session => {
+  logger.info('Get a default WhatsApp with id: ' + whatsappId);
+
   const sessionIndex = sessions.findIndex(s => s.id === whatsappId);
 
   if (sessionIndex === -1) {
@@ -166,6 +173,8 @@ export const getWbot = (whatsappId: number): Session => {
 };
 
 export const removeWbot = (whatsappId: number): void => {
+  logger.info('Remove a WhatsApp with id: ' + whatsappId);
+
   try {
     const sessionIndex = sessions.findIndex(s => s.id === whatsappId);
     if (sessionIndex !== -1) {

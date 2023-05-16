@@ -17,6 +17,7 @@ import api from "../../services/api";
 import { ReplyMessageProvider } from "../../context/ReplyingMessage/ReplyingMessageContext";
 import toastError from "../../errors/toastError";
 import jwt_decode from "jwt-decode";
+import { i18n } from "../../translate/i18n";
 
 const drawerWidth = 320;
 
@@ -106,7 +107,6 @@ const Ticket = () => {
 
   useEffect(() => {
     const socket = openSocket();
-    console.log("socket2");
     const token = localStorage.getItem("token");
     const userJWT = jwt_decode(token);
     socket.on("connect", () => socket.emit("joinChatBox", ticketId));
@@ -118,12 +118,12 @@ const Ticket = () => {
       }
 
       if (data.action === "delete") {
-        toast.success("Ticket deleted sucessfully.");
+        toast.success(i18n.t("ticketOptionsMenu.deletedMessage"));
         history.push("/tickets");
       }
     });
 
-    socket.on("contact", (data) => {
+    socket.on(`contact-${userJWT.companyId}`, (data) => {
       if (data.action === "update") {
         setContact((prevState) => {
           if (prevState.id === data.contact?.id) {

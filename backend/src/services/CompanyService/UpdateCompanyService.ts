@@ -9,7 +9,9 @@ interface UserData {
   passwordDefault?: string;
   name?: string;
   numberAttendants?: string;
-  numberConections: number
+  numberConections: number;
+  numberSetores: number;
+  status: number;
 }
 
 interface Request {
@@ -21,10 +23,7 @@ interface Response {
   user: UserData;
 }
 
-const UpdateUserService = async ({
-  Data,
-  Id
-}: Request): Promise<Response> => {
+const UpdateUserService = async ({ Data, Id }: Request): Promise<Response> => {
   const user = await ShowCompanyService(Id);
 
   const schema = Yup.object().shape({
@@ -33,10 +32,10 @@ const UpdateUserService = async ({
     passwordDefault: Yup.string()
   });
 
-  const { email, passwordDefault, numberAttendants, name, numberConections } = Data;
+  const { email, passwordDefault, numberAttendants, name, numberConections, numberSetores, status } = Data;
 
   try {
-    await schema.validate({ email, passwordDefault, numberAttendants, name, numberConections });
+    await schema.validate({ email, passwordDefault, numberAttendants, name, numberConections, numberSetores });
   } catch (err: any) {
     throw new AppError(err.message);
   }
@@ -46,7 +45,9 @@ const UpdateUserService = async ({
     passwordDefault,
     numberAttendants,
     name,
-    numberConections
+    numberConections,
+    numberSetores,
+    status
   });
 
   await user.reload();

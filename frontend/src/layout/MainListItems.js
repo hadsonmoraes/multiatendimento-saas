@@ -24,6 +24,22 @@ import { i18n } from "../translate/i18n";
 import { WhatsAppsContext } from "../context/WhatsApp/WhatsAppsContext";
 import { AuthContext } from "../context/Auth/AuthContext";
 import { Can } from "../components/Can";
+import toastError from "../errors/toastError";
+import api from "../services/api";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles(() => ({
+
+  numero: {
+
+    color: 'white',
+    "&:hover": {
+      cursor: "pointer",
+      color: 'black',
+    },
+  }
+
+}));
 
 function ListItemLink(props) {
   const { icon, primary, to, className } = props;
@@ -47,18 +63,29 @@ function ListItemLink(props) {
 }
 
 const MainListItems = (props) => {
+  const classes = useStyles();
   const { drawerClose } = props;
   const { whatsApps } = useContext(WhatsAppsContext);
   const { user } = useContext(AuthContext);
   const [connectionWarning, setConnectionWarning] = useState(false);
-  console.log(' dddd');
+  const [settings, setSettings] = useState([]);
 
   if (localStorage.getItem("token") !== null) {
     const token = localStorage.getItem("token");
     var userJWT = jwt_decode(token);
   }
 
-  console.log(' dddd', userJWT);
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const { data } = await api.get("/settings");
+        setSettings(data);
+      } catch (err) {
+        toastError(err);
+      }
+    };
+    fetchSession();
+  }, []);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -82,6 +109,15 @@ const MainListItems = (props) => {
     return () => clearTimeout(delayDebounceFn);
   }, [whatsApps]);
 
+  const getSettingValue = key => {
+    try {
+      const { value } = settings.find(s => s.key === key);
+      return value;
+    } catch (error) {
+      return ''
+    }
+  };
+
   return (
     <div onClick={drawerClose}>
       <ListItemLink
@@ -93,7 +129,7 @@ const MainListItems = (props) => {
         to="/connections"
         primary={i18n.t("mainDrawer.listItems.connections")}
         icon={
-          <Badge badgeContent={connectionWarning ? "!" : 0} color="error">
+          <Badge overlap="rectangular" badgeContent={connectionWarning ? "!" : 0} color="error">
             <SyncAltIcon />
           </Badge>
         }
@@ -120,7 +156,7 @@ const MainListItems = (props) => {
         yes={() => (
           <>
             <Divider />
-            <ListSubheader inset>
+            <ListSubheader style={{ color: '#29759A' }} inset>
               {i18n.t("mainDrawer.listItems.administration")}
             </ListSubheader>
             <ListItemLink
@@ -133,24 +169,25 @@ const MainListItems = (props) => {
               primary={i18n.t("mainDrawer.listItems.queues")}
               icon={<AccountTreeOutlinedIcon />}
             />
-            <ListItemLink
+            {(getSettingValue("useBotByQueueSample") === "disabled") ? <ListItemLink
               to="/bots"
               primary={i18n.t("mainDrawer.listItems.bots")}
               icon={<ManageBotsOutlinedIcon />}
-            />
-            <ListItemLink
+            /> : null}
+            {(getSettingValue("showApiKeyInCompanies") === "enabled") ? <ListItemLink
               to="/api"
               primary={i18n.t("mainDrawer.listItems.api")}
               icon={<CodeIcon />}
-            />
-            <ListItemLink
+            /> : null}
+            {userJWT.profile === 'admin' ? <ListItemLink
               to="/settings"
               primary={i18n.t("mainDrawer.listItems.settings")}
               icon={<SettingsOutlinedIcon />}
-            />
-            <ListSubheader inset>
-              {i18n.t("mainDrawer.listItems.administration")}
-            </ListSubheader>
+            /> : null}
+            <Divider />
+            {userJWT.companyId === null ? <ListSubheader style={{ color: '#29759A' }} inset>
+              {i18n.t("mainDrawer.listItems.superadministration")}
+            </ListSubheader> : null}
             {userJWT.companyId === null ? <ListItemLink
               to="/companies"
               primary={i18n.t("mainDrawer.listItems.companies")}
@@ -159,6 +196,23 @@ const MainListItems = (props) => {
           </>
         )}
       />
+      <Divider />
+      <div style={{ background: "linear-gradient(to right, #29759a , #78BEE0 , #78BEE1)", color: 'white', fontSize: '15px', textAlign: 'center', padding: '5px', marginTop: '2px', position: 'relative' }}>
+        Entre em contato: <br />
+        <span style={{
+          display: 'flex',
+          alignItems: 'center',
+          left: '50px',
+          marginLeft: '28px'
+        }}> <WhatsAppIcon /> <a className={classes.numero}
+
+          href="https://api.whatsapp.com/send?phone=556540421503" target="black">(65) 4042-1503 </a> </span>
+      </div>
+      <div>
+        <label>
+          {`  V-${process.env.REACT_APP_VERSION}`}
+        </label>
+      </div>
     </div>
   );
 };

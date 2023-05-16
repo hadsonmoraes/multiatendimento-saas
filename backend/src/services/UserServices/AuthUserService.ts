@@ -6,6 +6,8 @@ import {
 } from "../../helpers/CreateTokens";
 import { SerializeUser } from "../../helpers/SerializeUser";
 import Queue from "../../models/Queue";
+import ShowCompanyService from "../CompanyService/ShowCompanyService";
+import Company from "../../models/Company";
 
 interface SerializedUser {
   id: number;
@@ -13,6 +15,7 @@ interface SerializedUser {
   email: string;
   profile: string;
   queues: Queue[];
+  company: Company;
 }
 
 interface Request {
@@ -26,17 +29,23 @@ interface Response {
   refreshToken: string;
 }
 
-const AuthUserService = async ({
-  email,
-  password
-}: Request): Promise<Response> => {
+const AuthUserService = async ({ email, password }: Request): Promise<Response> => {
   const user = await User.findOne({
     where: { email },
-    include: ["queues"]
+    include: ["queues"] 
   });
-
+  
   if (!user) {
     throw new AppError("ERR_INVALID_CREDENTIALS", 401);
+  }
+
+  if (user.companyId !== null) {
+    const company = await ShowCompanyService(user!.companyId);
+    if (!company.status) {
+      throw new AppError("ERR_INACTIVE_COMPANY", 401);
+    }    
+    
+    user["company"] = company; 
   }
 
   if (!(await user.checkPassword(password))) {

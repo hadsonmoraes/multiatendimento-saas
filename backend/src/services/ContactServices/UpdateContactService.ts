@@ -1,6 +1,7 @@
 import AppError from "../../errors/AppError";
 import Contact from "../../models/Contact";
 import ContactCustomField from "../../models/ContactCustomField";
+import { logger } from "../../utils/logger";
 
 interface ExtraInfo {
   id?: number;
@@ -12,6 +13,7 @@ interface ContactData {
   number?: string;
   name?: string;
   commandBot?: string;
+  companyId?: number;
   extraInfo?: ExtraInfo[];
 }
 
@@ -20,14 +22,13 @@ interface Request {
   contactId: string;
 }
 
-const UpdateContactService = async ({
-  contactData,
-  contactId
-}: Request): Promise<Contact> => {
-  const { email, name, number, extraInfo, commandBot } = contactData;
+const UpdateContactService = async ({contactData, contactId}: Request): Promise<Contact> => { 
+  const { email, name, number, extraInfo, commandBot, companyId } = contactData;
+
+  logger.info('Update contact in service with phone '+ number +' and business: '+ companyId);
 
   const contact = await Contact.findOne({
-    where: { id: contactId },
+    where: { id: contactId, companyId: companyId },
     attributes: ["id", "name", "number", "email", "profilePicUrl", "commandBot"],
     include: ["extraInfo"]
   });
@@ -58,11 +59,12 @@ const UpdateContactService = async ({
     name,
     number,
     email,
-	commandBot
+	  commandBot,
+    companyId
   });
 
   await contact.reload({
-    attributes: ["id", "name", "number", "email", "profilePicUrl", "commandBot"],
+    attributes: ["id", "name", "number", "email", "profilePicUrl", "commandBot", "companyId"],
     include: ["extraInfo"]
   });
 

@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 
 import AppError from "../errors/AppError";
 import authConfig from "../config/auth";
+//import jwt_decode from "jwt-decode";
 
 interface TokenPayload {
   id: string;
@@ -20,6 +21,7 @@ const isAuth = (req: Request, res: Response, next: NextFunction): void => {
   }
 
   const [, token] = authHeader.split(" ");
+  //const userJWT: any = token && jwt_decode(token);    
 
   try {
     const decoded = verify(token, authConfig.secret);

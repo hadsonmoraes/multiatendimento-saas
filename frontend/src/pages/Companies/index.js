@@ -10,6 +10,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import TableFooter from "@material-ui/core/TableFooter";
 import IconButton from "@material-ui/core/IconButton";
 import SearchIcon from "@material-ui/icons/Search";
 import TextField from "@material-ui/core/TextField";
@@ -236,6 +237,9 @@ const Companies = () => {
                 {i18n.t("compaies.table.numberConections")}
               </TableCell>
               <TableCell align="center">
+                {i18n.t("compaies.table.numberSetores")}
+              </TableCell>
+              <TableCell align="center">
                 {i18n.t("compaies.table.actions")}
               </TableCell>
             </TableRow>
@@ -248,6 +252,7 @@ const Companies = () => {
                   <TableCell align="center">{company.email}</TableCell>
                   <TableCell align="center">{company.numberAttendants}</TableCell>
                   <TableCell align="center">{company.numberConections}</TableCell>
+                  <TableCell align="center">{company.numberSetores}</TableCell>
                   <TableCell align="center">
                     <IconButton
                       size="small"
@@ -271,6 +276,13 @@ const Companies = () => {
               {loading && <TableRowSkeleton columns={4} />}
             </>
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell align="center">
+                {i18n.t("table.totalRecords") + (companies ? companies?.length : 0)}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </Paper>
     </MainContainer>

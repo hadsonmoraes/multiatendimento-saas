@@ -18,7 +18,7 @@ interface Request {
 
 const GetContactService = async ({ name, number, companyId }: Request): Promise<Contact> => {
     const numberExists = await Contact.findOne({
-        where: { number }
+        where: { number, companyId }
     });
 
     if (!numberExists) {

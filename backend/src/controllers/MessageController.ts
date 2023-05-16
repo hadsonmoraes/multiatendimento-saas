@@ -27,7 +27,6 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   const { pageNumber } = req.query as IndexQuery;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const { count, messages, ticket, hasMore } = await ListMessagesService({
     pageNumber,
@@ -44,8 +43,10 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   const { ticketId } = req.params;
   const { body, quotedMsg }: MessageData = req.body;
   const medias = req.files as Express.Multer.File[];
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''));
+  const companyId = userJWT.companyId;
 
-  const ticket = await ShowTicketService(ticketId);
+  const ticket = await ShowTicketService(ticketId, companyId);
 
   SetTicketMessagesAsRead(ticket);
 

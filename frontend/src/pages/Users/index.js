@@ -10,6 +10,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import TableFooter from "@material-ui/core/TableFooter";
 import IconButton from "@material-ui/core/IconButton";
 import SearchIcon from "@material-ui/icons/Search";
 import TextField from "@material-ui/core/TextField";
@@ -248,10 +249,10 @@ const Users = () => {
                 {i18n.t("users.table.profile")}
               </TableCell>
               <TableCell align="center">
-                Padrão
+                {i18n.t("users.table.whatsapp")}
               </TableCell>
               <TableCell align="center">
-                Empresa
+                {i18n.t("users.table.business")}
               </TableCell>
               <TableCell align="center">
                 {i18n.t("users.table.actions")}
@@ -290,6 +291,13 @@ const Users = () => {
               {loading && <TableRowSkeleton columns={4} />}
             </>
           </TableBody>
+					<TableFooter>
+						<TableRow>
+							<TableCell align="center">
+								{i18n.t("table.totalRecords") + (users ? users?.length : 0)}
+							</TableCell>  
+						</TableRow>
+					</TableFooter>
         </Table>
       </Paper>
     </MainContainer>

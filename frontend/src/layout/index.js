@@ -25,6 +25,15 @@ import { AuthContext } from "../context/Auth/AuthContext";
 import BackdropLoading from "../components/BackdropLoading";
 import { i18n } from "../translate/i18n";
 
+//import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+import ArrowUpIcon from "@material-ui/icons/ArrowUpward";
+import ArrowDownIcon from "@material-ui/icons/ArrowDownward";
+import Hidden from "@material-ui/core/Hidden";
+
+import logoImg from "../assets/logotipo.png";
+//import iconMenu from "../assets/icon_menu.png";
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -37,14 +46,29 @@ const useStyles = makeStyles((theme) => ({
   },
 
   toolbar: {
-    paddingRight: 20, // keep right padding when drawer closed
+    paddingRight: 24, // keep right padding when drawer closed #2f5604  #0891B2
+    color: "white",
+    background: process.env.REACT_APP_COLOR_TOOLBAR || "#0891B2"
   },
   toolbarIcon: {
+    background: "white", // Cor barra superior
     display: "flex",
     alignItems: "center",
     justifyContent: "flex-end",
     padding: "0 8px",
     minHeight: "48px",
+    [theme.breakpoints.down("sm")]: {
+      height: "48px"
+    }
+  },
+
+  logo: {
+    width: "35%",
+    height: "auto",
+    display: "flex",
+    alignItems: "center",
+    marginRight: "30px"
+    // justifyContent: "flex-end",
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
@@ -121,7 +145,7 @@ const LoggedInLayout = ({ children }) => {
 
   useEffect(() => {
     if (document.body.offsetWidth > 600) {
-      setDrawerOpen(false);
+      setDrawerOpen(true);
     }
   }, []);
 
@@ -177,8 +201,15 @@ const LoggedInLayout = ({ children }) => {
         open={drawerOpen}
       >
         <div className={classes.toolbarIcon}>
+          {/* eslint-disable-next-line */}
+          <img src={logoImg} className={classes.logo} alt="logo" />
           <IconButton onClick={() => setDrawerOpen(!drawerOpen)}>
-            <ChevronLeftIcon />
+            <Hidden only={["sm", "xs"]}>
+              {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            </Hidden>
+            <Hidden smUp>
+              {drawerOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
+            </Hidden>
           </IconButton>
         </div>
         <Divider />
@@ -208,6 +239,7 @@ const LoggedInLayout = ({ children }) => {
               drawerOpen && classes.menuButtonHidden
             )}
           >
+            {/* <img src={iconMenu} className={classes.logo} alt="image" /> */}
             <MenuIcon />
           </IconButton>
           <Typography
@@ -217,10 +249,16 @@ const LoggedInLayout = ({ children }) => {
             noWrap
             className={classes.title}
           >
-            Central - Nsc Sistemas
+            <Hidden only={["sm", "xs"]}>
+              {!drawerOpen ? process.env.REACT_APP_NAME + ' - ' : ''} {user.company ? user.company.name : 'Multiatendimento WhatsApp'}
+            </Hidden>
+            <Hidden smUp>
+              {user.company ? user.company.name : process.env.REACT_APP_NAME + ' WhatsApp'}
+            </Hidden>
+            {user.id && <NotificationsPopOver />}
           </Typography>
-          {user.id && <NotificationsPopOver />}
 
+          <span style={{ fontSize: "18px", }}>{user.name}</span>
 
           <div>
             <IconButton

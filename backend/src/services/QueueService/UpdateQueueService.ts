@@ -8,6 +8,10 @@ interface QueueData {
   name?: string;
   color?: string;
   greetingMessage?: string;
+  companyId?: number;
+  startWork?: string;
+  endWork?: string;
+  absenceMessage?: string;  
 }
 
 const UpdateQueueService = async (
@@ -25,7 +29,7 @@ const UpdateQueueService = async (
         async value => {
           if (value) {
             const queueWithSameName = await Queue.findOne({
-              where: { name: value, id: { [Op.not]: queueId } }
+              where: { name: value, companyId: queueData.companyId, id: { [Op.not]: queueId } }
             });
 
             return !queueWithSameName;
@@ -48,7 +52,7 @@ const UpdateQueueService = async (
         async value => {
           if (value) {
             const queueWithSameColor = await Queue.findOne({
-              where: { color: value, id: { [Op.not]: queueId } }
+              where: { color: value, companyId: queueData.companyId, id: { [Op.not]: queueId } }
             });
             return !queueWithSameColor;
           }

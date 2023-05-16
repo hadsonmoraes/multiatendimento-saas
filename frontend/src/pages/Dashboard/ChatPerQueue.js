@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useTheme } from "@material-ui/core/styles";
-import { PieChart, Pie, Sector, Cell, ResponsiveContainer,Tooltip } from 'recharts';
+// import { useTheme } from "@material-ui/core/styles";
+// import { PieChart, Pie, Sector, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, ResponsiveContainer, Tooltip } from 'recharts';
 
-import { i18n } from "../../translate/i18n";
+// import { i18n } from "../../translate/i18n";
 
-import Title from "./Title";
+// import Title from "./Title";
 
 const ChartPerQueue = ({ tickets, queues }) => {
-    const theme = useTheme();
+    // const theme = useTheme();
 
     const [chartData, setChartData] = useState([]);
 
@@ -32,6 +33,7 @@ const ChartPerQueue = ({ tickets, queues }) => {
 
             return aux;
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tickets]);
 
     return (

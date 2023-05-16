@@ -1,8 +1,10 @@
 import AppError from "../../errors/AppError";
 import CheckContactOpenTickets from "../../helpers/CheckContactOpenTickets";
 import GetDefaultWhatsApp from "../../helpers/GetDefaultWhatsApp";
+import GetDefaultWhatsAppByUser from "../../helpers/GetDefaultWhatsAppByUser";
 import Ticket from "../../models/Ticket";
 import User from "../../models/User";
+import Whatsapp from "../../models/Whatsapp";
 import ShowContactService from "../ContactServices/ShowContactService";
 
 interface Request {
@@ -20,9 +22,14 @@ const CreateTicketService = async ({
   queueId,
   companyId
 }: Request): Promise<Ticket> => {
-  const defaultWhatsapp = await GetDefaultWhatsApp(userId, companyId);
 
-  await CheckContactOpenTickets(contactId, defaultWhatsapp.id);
+  let defaultWhatsapp = await GetDefaultWhatsAppByUser(userId, companyId);
+
+  if (!defaultWhatsapp || defaultWhatsapp == null || defaultWhatsapp == undefined) {
+    defaultWhatsapp = await GetDefaultWhatsApp(userId, companyId);
+  }
+
+  await CheckContactOpenTickets(contactId, defaultWhatsapp.id, companyId);
 
   const { isGroup } = await ShowContactService(contactId);
 

@@ -48,13 +48,13 @@ const useStyles = makeStyles((theme) => ({
 
 const QuickAnswerSchema = Yup.object().shape({
   shortcut: Yup.string()
-    .min(2, "Too Short!")
-    .max(15, "Too Long!")
-    .required("Required"),
+    .min(2, "Muito curto!")
+    .max(15, "Muito longo!")
+    .required("Obrigatório"),
   message: Yup.string()
-    .min(8, "Too Short!")
-    .max(30000, "Too Long!")
-    .required("Required"),
+    .min(8, "Muito curto!")
+    .max(30000, "Muito longo!")
+    .required("Obrigatório"),
 });
 
 const QuickAnswersModal = ({

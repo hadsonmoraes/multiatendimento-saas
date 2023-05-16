@@ -2,9 +2,10 @@ import React, { useEffect } from 'react';
 import toastError from "../../errors/toastError";
 
 import Typography from "@material-ui/core/Typography";
-import Grid from "@material-ui/core/Grid";
+//import Grid from "@material-ui/core/Grid";
 
 import { Button, Divider, } from "@material-ui/core";
+import { i18n } from "../../translate/i18n";
 
 const LocationPreview = ({ image, link, description }) => {
     useEffect(() => {}, [image, link, description]);
@@ -24,6 +25,7 @@ const LocationPreview = ({ image, link, description }) => {
 			}}>
 				<div>
 					<div style={{ float: "left" }}>
+						 {/* eslint-disable-next-line */}
 						<img src={image} onClick={handleLocation} style={{ width: "100px" }} />
 					</div>
 					{ description && (
@@ -41,7 +43,7 @@ const LocationPreview = ({ image, link, description }) => {
 							color="primary"
 							onClick={handleLocation}
 							disabled={!link}
-						>Visualizar</Button>
+						>{i18n.t("chat.locationView")}</Button>
 					</div>
 				</div>
 			</div>

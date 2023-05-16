@@ -20,6 +20,8 @@ import useTickets from "../../hooks/useTickets";
 import alertSound from "../../assets/sound.mp3";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import jwt_decode from "jwt-decode";
+import api from "../../services/api";
+import toastError from "../../errors/toastError";
 
 const useStyles = makeStyles(theme => ({
 	tabContainer: {
@@ -51,14 +53,34 @@ const NotificationsPopOver = () => {
 	const anchorEl = useRef();
 	const [isOpen, setIsOpen] = useState(false);
 	const [notifications, setNotifications] = useState([]);
-
+	const { profile, queues } = user;
 	const [, setDesktopNotifications] = useState([]);
-
 	const { tickets } = useTickets({ withUnreadMessages: "true" });
 	const [play] = useSound(alertSound);
 	const soundAlertRef = useRef();
-
 	const historyRef = useRef(history);
+	const [settings, setSettings] = useState([]);
+
+	useEffect(() => {
+		const fetchSession = async () => {
+			try {
+				const { data } = await api.get("/settings");
+				setSettings(data);
+			} catch (err) {
+				toastError(err);
+			}
+		};
+		fetchSession();
+	}, []);
+
+	const getSettingValue = key => {
+		try {
+			const { value } = settings.find(s => s.key === key);
+			return value;
+		} catch (error) {
+			return '';
+		}
+	};
 
 	useEffect(() => {
 		soundAlertRef.current = play;
@@ -71,8 +93,16 @@ const NotificationsPopOver = () => {
 	}, [play]);
 
 	useEffect(() => {
-		setNotifications(tickets);
-	}, [tickets]);
+		const queueIds = queues.map((q) => q.id);
+		const filteredTickets = tickets.filter((t) => queueIds.indexOf(t.queueId) > -1);
+
+		if (profile === "user" && getSettingValue('hideTicketWithoutDepartment') === 'enabled') {
+			setNotifications(filteredTickets);
+		} else {
+			setNotifications(tickets);
+		}
+		// eslint-disable-next-line
+	}, [tickets, queues, profile]);
 
 	useEffect(() => {
 		ticketIdRef.current = ticketIdUrl;
@@ -80,7 +110,7 @@ const NotificationsPopOver = () => {
 
 	useEffect(() => {
 		const socket = openSocket();
-		console.log("socket");
+		const queueIds = queues.map((q) => q.id);
 		const token = localStorage.getItem("token");
 		const userJWT = jwt_decode(token);
 
@@ -117,6 +147,11 @@ const NotificationsPopOver = () => {
 				!data.message.read &&
 				(data.ticket.userId === user?.id || !data.ticket.userId)
 			) {
+				if (getSettingValue('hideTicketWithoutDepartment') === 'enabled') {
+					if (profile === 'user' && (queueIds.indexOf(data.ticket.queue?.id) === -1 || data.ticket.queue === null))
+						return;
+				}
+
 				setNotifications(prevState => {
 					const ticketIndex = prevState.findIndex(t => t.id === data.ticket.id);
 					if (ticketIndex !== -1) {
@@ -130,7 +165,7 @@ const NotificationsPopOver = () => {
 					(data.message.ticketId === ticketIdRef.current &&
 						document.visibilityState === "visible") ||
 					(data.ticket.userId && data.ticket.userId !== user?.id) ||
-					data.ticket.isGroup;
+					data.ticket.isGroup || data.ticket.chatbot;
 
 				if (shouldNotNotificate) return;
 
@@ -141,7 +176,8 @@ const NotificationsPopOver = () => {
 		return () => {
 			socket.disconnect();
 		};
-	}, [user]);
+		// eslint-disable-next-line
+	}, [user, profile, queues]);
 
 	const handleNotifications = data => {
 		const { message, contact, ticket } = data;
@@ -201,7 +237,7 @@ const NotificationsPopOver = () => {
 					display: "none",
 				}}
 			>
-				<Badge badgeContent={notifications.length} color="secondary">
+				<Badge overlap="rectangular" badgeContent={notifications.length} color="secondary">
 					<ChatIcon />
 				</Badge>
 			</IconButton>

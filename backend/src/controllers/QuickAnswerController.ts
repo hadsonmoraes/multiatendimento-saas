@@ -24,7 +24,6 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   const { searchParam, pageNumber } = req.query as IndexQuery;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const { quickAnswers, count, hasMore } = await ListQuickAnswerService({
     searchParam,
@@ -49,9 +48,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     throw new AppError(err.message);
   }
 
-
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const quickAnswer = await CreateQuickAnswerService({
     ...newQuickAnswer
@@ -98,8 +95,10 @@ export const update = async (
     quickAnswerId
   });
 
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
+
   const io = getIO();
-  io.emit("quickAnswer", {
+  io.emit(`quickAnswer-${userJWT.companyId}`, {
     action: "update",
     quickAnswer
   });
@@ -116,7 +115,6 @@ export const remove = async (
   await DeleteQuickAnswerService(quickAnswerId);
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const io = getIO();
   io.emit(`quickAnswer-${userJWT.companyId}`, {

@@ -5,7 +5,6 @@ module.exports = {
     return queryInterface.createTable("Settings", {
       key: {
         type: DataTypes.STRING,
-        primaryKey: true,
         allowNull: false
       },
       value: {

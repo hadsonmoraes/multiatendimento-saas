@@ -14,6 +14,7 @@ import GetProfilePicUrl from "../services/WbotServices/GetProfilePicUrl";
 import AppError from "../errors/AppError";
 import GetContactService from "../services/ContactServices/GetContactService";
 import jwt_decode from "jwt-decode";
+import { logger } from "../utils/logger";
 
 type IndexQuery = {
   searchParam: string;
@@ -39,8 +40,8 @@ interface ContactData {
 export const index = async (req: Request, res: Response): Promise<Response> => {
   const { searchParam, pageNumber } = req.query as IndexQuery;
 
-  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''));
+
   const { contacts, count, hasMore } = await ListContactsService({
     searchParam,
     pageNumber,
@@ -57,7 +58,6 @@ export const getContact = async (
   const { name, number } = req.body as IndexGetContactQuery;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const contact = await GetContactService({
     name,
@@ -81,7 +81,6 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
 
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   try {
     await schema.validate(newContact);
@@ -92,7 +91,9 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   await CheckIsValidContact(newContact.number, userJWT.companyId);
   const validNumber: any = await CheckContactNumber(newContact.number, userJWT.companyId)
 
-  const profilePicUrl = await GetProfilePicUrl(validNumber, userJWT.companyId);
+  let profilePicUrl = await GetProfilePicUrl(validNumber, userJWT.companyId);
+  if (!profilePicUrl)
+    profilePicUrl = "/default-profile.png"; // Foto de perfil padrão   
 
   let name = newContact.name;
   let number = validNumber;
@@ -139,8 +140,10 @@ export const update = async (
     )
   });
 
-  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''));
+  logger.warn('Updating contact ' + contactData.number + ' in business: ' + userJWT.companyId);
+
+  contactData.companyId = userJWT.companyId;
 
   try {
     await schema.validate(contactData);
@@ -155,7 +158,7 @@ export const update = async (
   const contact = await UpdateContactService({ contactData, contactId });
 
   const io = getIO();
-  io.emit("contact", {
+  io.emit(`contact-${userJWT.companyId}`, {
     action: "update",
     contact
   });
@@ -170,9 +173,8 @@ export const remove = async (
   const { contactId } = req.params;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
-  await DeleteContactService(contactId);
+  await DeleteContactService(contactId, userJWT.companyId);
 
   const io = getIO();
   io.emit(`contact-${userJWT.companyId}`, {

@@ -4,6 +4,7 @@ import AppError from "../errors/AppError";
 import AuthUserService from "../services/UserServices/AuthUserService";
 import { SendRefreshToken } from "../helpers/SendRefreshToken";
 import { RefreshTokenService } from "../services/AuthServices/RefreshTokenService";
+import ShowCompanyService from "../services/CompanyService/ShowCompanyService";
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const { email, password } = req.body;
@@ -15,7 +16,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
 
   SendRefreshToken(res, refreshToken);
 
-  return res.status(200).json({
+  return res.status(200).json({ 
     token,
     user: serializedUser
   });
@@ -31,10 +32,16 @@ export const update = async (
     throw new AppError("ERR_SESSION_EXPIRED", 401);
   }
 
-  const { user, newToken, refreshToken } = await RefreshTokenService(
-    res,
-    token
-  );
+  const { user, newToken, refreshToken } = await RefreshTokenService(res, token);
+
+  if (user.companyId !== null) {
+    const company = await ShowCompanyService(user!.companyId);
+    if (!company.status) {
+      throw new AppError("ERR_INACTIVE_COMPANY", 401);
+    }
+
+    user["company"] = company;
+  }
 
   SendRefreshToken(res, refreshToken);
 

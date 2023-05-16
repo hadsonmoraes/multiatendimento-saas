@@ -11,6 +11,8 @@ import ShowWhatsAppService from "../services/WhatsappService/ShowWhatsAppService
 import ShowQueueService from "../services/QueueService/ShowQueueService";
 import formatBody from "../helpers/Mustache";
 import jwt_decode from "jwt-decode";
+import AppError from "../errors/AppError";
+import { logger } from "../utils/logger";
 
 type IndexQuery = {
   searchParam: string;
@@ -50,7 +52,6 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   }
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const { tickets, count, hasMore } = await ListTicketsService({
     searchParam,
@@ -68,15 +69,15 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 };
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
-  const { contactId, status, userId }: TicketData = req.body;
+  const { contactId, status, userId, queueId }: TicketData = req.body;
 
-  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''));
+  const companyId = userJWT.companyId;
 
-  const ticket = await CreateTicketService({ contactId, status, userId, companyId: userJWT.companyId });
+  const ticket = await CreateTicketService({ contactId, status, userId, queueId, companyId: companyId });
 
   const io = getIO();
-  io.to(ticket.status).emit(`ticket-${userJWT.companyId}`, {
+  io.to(ticket.status).emit(`ticket-${companyId}`, {
     action: "update",
     ticket
   });
@@ -87,26 +88,35 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
 export const show = async (req: Request, res: Response): Promise<Response> => {
   const { ticketId } = req.params;
 
-  const contact = await ShowTicketService(ticketId);
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''));
+  const companyId = userJWT.companyId;
+
+  const contact = await ShowTicketService(ticketId, companyId);
+
+  if (contact!.companyId !== Number(companyId)) {
+    throw new AppError("ERR_TICKET_NOT_FOUND", 404);
+  }
 
   return res.status(200).json(contact);
 };
 
-export const update = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const update = async (req: Request, res: Response): Promise<Response> => {
   const { ticketId } = req.params;
   const ticketData: TicketData = req.body;
 
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''));
+  const companyId = userJWT.companyId;
+  console.log(userJWT.companyId)
+
   const { ticket } = await UpdateTicketService({
     ticketData,
-    ticketId
+    ticketId,
+    companyId
   });
 
   if (ticketData.transf) {
     const { name } = await ShowQueueService(ticketData.queueId);
-    const msgtxt = "Atendimento tranferido para o departamento *" + name + "*\n  Aguarde um instante, iremos atende-lo(a)!";
+    const msgtxt = "Atendimento transferido para o departamento *" + name + "*.\nAguarde um instante, o responsável já irá atendê-lo(a)!";
     await SendWhatsAppMessage({ body: msgtxt, ticket });
   }
 
@@ -117,7 +127,7 @@ export const update = async (
 
     if (farewellMessage) {
       await SendWhatsAppMessage({
-        body: formatBody(farewellMessage, ticket.contact),
+        body: formatBody(farewellMessage, ticket),
         ticket
       });
     }
@@ -132,7 +142,6 @@ export const remove = async (
 ): Promise<Response> => {
   const { ticketId } = req.params;
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const ticket = await DeleteTicketService(ticketId);
 

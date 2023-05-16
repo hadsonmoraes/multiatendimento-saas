@@ -39,6 +39,12 @@ class Company extends Model<Company> {
   @Column
   numberConections: number;
 
+  @Column
+  numberSetores: number;
+
+  @Column
+  status: boolean;
+
   @CreatedAt
   createdAt: Date;
 

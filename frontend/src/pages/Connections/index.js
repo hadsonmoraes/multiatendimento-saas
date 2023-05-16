@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useContext } from "react";
+import React, { useState, useCallback, useContext, useEffect } from "react";
 import { toast } from "react-toastify";
 import { format, parseISO } from "date-fns";
 
@@ -16,6 +16,7 @@ import {
 	Tooltip,
 	Typography,
 	CircularProgress,
+	TableFooter,
 } from "@material-ui/core";
 import {
 	Edit,
@@ -40,6 +41,7 @@ import QrcodeModal from "../../components/QrcodeModal";
 import { i18n } from "../../translate/i18n";
 import { WhatsAppsContext } from "../../context/WhatsApp/WhatsAppsContext";
 import toastError from "../../errors/toastError";
+import { AuthContext } from "../../context/Auth/AuthContext";
 
 const useStyles = makeStyles(theme => ({
 	mainPaper: {
@@ -100,6 +102,9 @@ const Connections = () => {
 	const [qrModalOpen, setQrModalOpen] = useState(false);
 	const [selectedWhatsApp, setSelectedWhatsApp] = useState(null);
 	const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+	const [settings, setSettings] = useState([]);
+	const { user } = useContext(AuthContext);
+	const { profile } = user;
 	const confirmationModalInitialState = {
 		action: "",
 		title: "",
@@ -110,6 +115,27 @@ const Connections = () => {
 	const [confirmModalInfo, setConfirmModalInfo] = useState(
 		confirmationModalInitialState
 	);
+
+	useEffect(() => {
+		const fetchSession = async () => {
+			try {
+				const { data } = await api.get("/settings");
+				setSettings(data);
+			} catch (err) {
+				toastError(err);
+			}
+		};
+		fetchSession();
+	}, []);
+
+	const getSettingValue = key => {
+		try {
+			const { value } = settings.find(s => s.key === key);
+			return value;
+		} catch (error) {
+			return ''
+		}
+	};
 
 	const handleStartWhatsAppSession = async whatsAppId => {
 		try {
@@ -128,8 +154,12 @@ const Connections = () => {
 	};
 
 	const handleOpenWhatsAppModal = () => {
-		setSelectedWhatsApp(null);
-		setWhatsAppModalOpen(true);
+		if (getSettingValue("allowUserEditConnection") === 'disabled' && profile === 'user') {
+			toast.error(i18n.t("connections.table.no_permition.message"));
+		} else {
+			setSelectedWhatsApp(null);
+			setWhatsAppModalOpen(true);
+		}
 	};
 
 	const handleCloseWhatsAppModal = useCallback(() => {
@@ -148,29 +178,37 @@ const Connections = () => {
 	}, [setQrModalOpen, setSelectedWhatsApp]);
 
 	const handleEditWhatsApp = whatsApp => {
-		setSelectedWhatsApp(whatsApp);
-		setWhatsAppModalOpen(true);
+		if (getSettingValue("allowUserEditConnection") === 'disabled' && profile === 'user') {
+			toast.error(i18n.t("connections.table.no_permition.message"));
+		} else {
+			setSelectedWhatsApp(whatsApp);
+			setWhatsAppModalOpen(true);
+		}
 	};
 
 	const handleOpenConfirmationModal = (action, whatsAppId) => {
-		if (action === "disconnect") {
-			setConfirmModalInfo({
-				action: action,
-				title: i18n.t("connections.confirmationModal.disconnectTitle"),
-				message: i18n.t("connections.confirmationModal.disconnectMessage"),
-				whatsAppId: whatsAppId,
-			});
-		}
+		if (getSettingValue("allowUserEditConnection") === 'disabled' && profile === 'user') {
+			toast.error(i18n.t("connections.table.no_permition.message"));
+		} else {
+			if (action === "disconnect") {
+				setConfirmModalInfo({
+					action: action,
+					title: i18n.t("connections.confirmationModal.disconnectTitle"),
+					message: i18n.t("connections.confirmationModal.disconnectMessage"),
+					whatsAppId: whatsAppId,
+				});
+			}
 
-		if (action === "delete") {
-			setConfirmModalInfo({
-				action: action,
-				title: i18n.t("connections.confirmationModal.deleteTitle"),
-				message: i18n.t("connections.confirmationModal.deleteMessage"),
-				whatsAppId: whatsAppId,
-			});
+			if (action === "delete") {
+				setConfirmModalInfo({
+					action: action,
+					title: i18n.t("connections.confirmationModal.deleteTitle"),
+					message: i18n.t("connections.confirmationModal.deleteMessage"),
+					whatsAppId: whatsAppId,
+				});
+			}
+			setConfirmModalOpen(true);
 		}
-		setConfirmModalOpen(true);
 	};
 
 	const handleSubmitConfirmationModal = async () => {
@@ -181,6 +219,7 @@ const Connections = () => {
 				toastError(err);
 			}
 		}
+
 
 		if (confirmModalInfo.action === "delete") {
 			try {
@@ -326,10 +365,16 @@ const Connections = () => {
 					<TableHead>
 						<TableRow>
 							<TableCell align="center">
+								{i18n.t("connections.table.id")}
+							</TableCell>
+							<TableCell align="center">
 								{i18n.t("connections.table.name")}
 							</TableCell>
 							<TableCell align="center">
 								{i18n.t("connections.table.status")}
+							</TableCell>
+							<TableCell align="center">
+								{i18n.t("connections.table.number")}
 							</TableCell>
 							<TableCell align="center">
 								{i18n.t("connections.table.session")}
@@ -341,7 +386,7 @@ const Connections = () => {
 								{i18n.t("connections.table.default")}
 							</TableCell>
 							<TableCell align="center">
-								Responsável
+								{i18n.t("connections.table.responsible")}
 							</TableCell>
 							<TableCell align="center">
 								{i18n.t("connections.table.actions")}
@@ -356,9 +401,13 @@ const Connections = () => {
 								{whatsApps?.length > 0 &&
 									whatsApps.map(whatsApp => (
 										<TableRow key={whatsApp.id}>
+											<TableCell align="center">{whatsApp.id}</TableCell>
 											<TableCell align="center">{whatsApp.name}</TableCell>
 											<TableCell align="center">
 												{renderStatusToolTips(whatsApp)}
+											</TableCell>
+											<TableCell align="center">
+												+{whatsApp.number}
 											</TableCell>
 											<TableCell align="center">
 												{renderActionButtons(whatsApp)}
@@ -398,6 +447,13 @@ const Connections = () => {
 							</>
 						)}
 					</TableBody>
+					<TableFooter>
+						<TableRow>
+							<TableCell align="center">
+								{i18n.t("table.totalRecords") + (whatsApps ? whatsApps?.length : 0)}
+							</TableCell>
+						</TableRow>
+					</TableFooter>
 				</Table>
 			</Paper>
 		</MainContainer>

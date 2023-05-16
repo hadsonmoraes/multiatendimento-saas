@@ -1,6 +1,9 @@
 const messages = {
   pt: {
     translations: {
+      table: {
+        totalRecords: "Total de registros: ",
+      },
       signup: {
         title: "Cadastre-se",
         toasts: {
@@ -34,10 +37,21 @@ const messages = {
         },
       },
       dashboard: {
+        dtinicial: "Início:",
+        dtfinal: "Fim:",
+        status: "Status",
+        queue: "Setor",
         charts: {
           perDay: {
-            title: "Tickets hoje: ",
+            title: "Geral: ",
           },
+          perUser: {
+            title: "Geral por Usuário: "
+          },
+          perQueue: {
+
+            title: "Geral por Setor: "
+          }
         },
         messages: {
           inAttendance: {
@@ -47,7 +61,7 @@ const messages = {
             title: "Aguardando"
           },
           closed: {
-            title: "Finalizado"
+            title: "Resolvido"
           }
         }
       },
@@ -92,12 +106,18 @@ const messages = {
           },
         },
         table: {
+          id: "ID da Instância",
           name: "Nome",
+          number: "Número",
           status: "Status",
           lastUpdate: "Última atualização",
           default: "Padrão",
+          responsible: "Empresa",
           actions: "Ações",
           session: "Sessão",
+          no_permition: {
+            message: "Você não tem autorização para acessar este recurso!",
+          },
         },
       },
       whatsappModal: {
@@ -124,18 +144,23 @@ const messages = {
         title: "Contatos",
         toasts: {
           deleted: "Contato excluído com sucesso!",
+          deletedAll: "Todos contatos excluídos com sucesso!",
         },
         searchPlaceholder: "Pesquisar...",
         confirmationModal: {
           deleteTitle: "Deletar ",
+          deleteAllTitle: "Deletar Todos",
           importTitlte: "Importar contatos",
           deleteMessage:
             "Tem certeza que deseja deletar este contato? Todos os tickets relacionados serão perdidos.",
+          deleteAllMessage: "Tem certeza que deseja deletar todos os contatos? Todos os tickets relacionados serão perdidos.",
           importMessage: "Deseja importas todos os contatos do telefone?",
         },
         buttons: {
-          import: "Importar Contatos",
-          add: "Adicionar Contato",
+          import: "Importar",
+          add: "Adicionar",
+          export: "Exportar",
+          delete: "Excluir"
         },
         table: {
           name: "Nome",
@@ -180,7 +205,7 @@ const messages = {
           okEdit: "Salvar",
           cancel: "Cancelar",
         },
-        success: "Resposta Rápida salva com sucesso.",
+        success: "Resposta rápida salva com sucesso.",
       },
       queueModal: {
         title: {
@@ -191,6 +216,13 @@ const messages = {
           name: "Nome",
           color: "Cor",
           greetingMessage: "Mensagem de saudação",
+          startWork: "Abertura",
+          endWork: "Fechamento",
+          absenceMessage: "Mensagem de ausência",
+        },
+        message: {
+          sucess: "Setor salvo com sucesso!",
+          unavailable: "Departamento indisponível no momento!",
         },
         buttons: {
           okAdd: "Adicionar",
@@ -206,18 +238,26 @@ const messages = {
         form: {
           commandBot: "Comando",
           descriptionBot: "Descrição",
-          commandType: "Tipo",
           showMessage: "Mensagem",
           userId: "Atendente",
           queueId: "Setor",
-        },
-        messages: {
-          saved: "Comando salvo com sucesso!",
-        },
-        buttons: {
-          okAdd: "Adicionar",
-          okEdit: "Salvar",
-          cancel: "Cancelar",
+          commandType: {
+            name: "Tipo",
+            options: {
+              "1": "Informativo",
+              "2": "Menu",
+              "3": "Setor",
+              "4": "Atendente",
+            },
+          },
+          messages: {
+            saved: "Comando salvo com sucesso!",
+          },
+          buttons: {
+            okAdd: "Adicionar",
+            okEdit: "Salvar",
+            cancel: "Cancelar",
+          },
         },
       },
       userModal: {
@@ -250,6 +290,7 @@ const messages = {
           passwordDefault: "Senha",
           numberAttendants: "Usuários",
           numberConections: "Conexões",
+          numberSetores: "Setores",
         },
         buttons: {
           okAdd: "Adicionar",
@@ -260,6 +301,13 @@ const messages = {
       },
       chat: {
         noTicketMessage: "Selecione um ticket para começar a conversar.",
+        locationView: "Visualizar",
+      },
+      uploads: {
+        titles: {
+          titleUploadMsgDragDrop: "ARRASTE E SOLTE ARQUIVOS NO CAMPO ABAIXO",
+          titleFileList: "Lista de arquivo(s)"
+        },
       },
       ticketsManager: {
         buttons: {
@@ -277,9 +325,9 @@ const messages = {
           message: "Mensagem de",
         },
         tabs: {
-          open: { title: "Inbox" },
+          open: { title: "Atendimentos" },
           closed: { title: "Resolvidos" },
-          search: { title: "Busca" },
+          search: { title: "Pesquisar" },
         },
         search: {
           placeholder: "Buscar tickets e mensagens",
@@ -290,7 +338,7 @@ const messages = {
       },
       transferTicketModal: {
         title: "Transferir Ticket",
-        fieldLabel: "Digite para buscar usuários",
+        fieldLabel: "Digite para pesquisar o contato",
         fieldQueueLabel: "Transferir para fila",
         fieldConnectionLabel: "Transferir para conexão",
         fieldQueuePlaceholder: "Selecione uma fila",
@@ -306,18 +354,30 @@ const messages = {
         assignedHeader: "Atendendo",
         noTicketsTitle: "Nada aqui!",
         noTicketsMessage:
-          "Nenhum ticket encontrado com esse status ou termo pesquisado",
+          "Nenhum atendimento encontrado com esse status ou termo pesquisado",
         connectionTitle: "Conexão que está sendo utilizada atualmente.",
         buttons: {
           accept: "Aceitar",
+          cancel: "Cancelar",
+          start: "Continuar",
+        },
+        status: {
+          closed: "Fechado"
+        },
+        acceptModal: {
+          title: "Atendimento sem Setor",
+          queue: "Selecionar um setor para continuar"
+
         },
       },
       newTicketModal: {
-        title: "Criar Ticket",
+        title: "Criar novo ticket",
         fieldLabel: "Digite para pesquisar o contato",
+        fieldQueue: "Selecionar o setor",
         add: "Adicionar",
+        savedContact: "foi salvo com sucesso! Realize a consulta novamente.",
         buttons: {
-          ok: "Salvar",
+          ok: "Confirmar",
           cancel: "Cancelar",
         },
       },
@@ -325,12 +385,13 @@ const messages = {
         listItems: {
           dashboard: "Dashboard",
           connections: "Conexões",
-          tickets: "Tickets",
+          tickets: "Atendimentos",
           contacts: "Contatos",
           quickAnswers: "Respostas Rápidas",
           queues: "Setores",
           bots: "Chatbot",
           administration: "Administração",
+          superadministration: "Super Admin",
           api: "Uso da API",
           users: "Usuários",
           settings: "Configurações",
@@ -339,7 +400,7 @@ const messages = {
         appBar: {
           user: {
             profile: "Perfil",
-            logout: "Sair",
+            logout: "Logout",
           },
         },
       },
@@ -420,6 +481,7 @@ const messages = {
           email: "Email",
           profile: "Perfil",
           whatsapp: "Conexão Padrão",
+          business: "Empresa",
           actions: "Ações",
         },
         buttons: {
@@ -441,6 +503,7 @@ const messages = {
           email: "Email",
           numberAttendants: "Atendentes",
           numberConections: "Conexões",
+          numberSetores: "Setores",
           actions: "Ações",
         },
         buttons: {
@@ -466,6 +529,96 @@ const messages = {
               disabled: "Desativado",
             },
           },
+          showApiKeyInCompanies: {
+            name: "Mostrar Api Key nas empresas",
+            options: {
+              enabled: "Ativado",
+              disabled: "Desativado",
+            },
+          },
+          apiKey: {
+            name: "Access token da api",
+          },
+          allowUserEditConnection: {
+            name: "Permitir usuário adicionar/alterar conexão",
+            options: {
+              enabled: "Ativado",
+              disabled: "Desativado",
+            },
+          },
+          hideTicketWithoutDepartment: {
+            name: "Ocultar ticket sem setor",
+            options: {
+              enabled: "Ativado",
+              disabled: "Desativado",
+            },
+          },
+          useBotByQueueSample: {
+            name: "Usar bot simples",
+            options: {
+              enabled: "Ativado",
+              disabled: "Desativado",
+            },
+          },
+          CheckMsgIsGroup: {
+            name: "Ignorar Msg de Grupos",
+            options: {
+              enabled: "Ativado",
+              disabled: "Desativado",
+            },
+          },
+          call: {
+            name: "Aceitar chamadas",
+            note: "Se desabilitado, o cliente receberá uma mensagem informando que não aceita chamadas de voz/vídeo",
+            options: {
+              enabled: "Ativado",
+              disabled: "Desativado",
+            },
+          },
+          tickets: {
+            transfer: {
+              autoTransfer: "Transferir para",
+              afterMinutes: "Transferir para após",
+              options: {
+                disabled: "0 (Desabilitado)",
+                "10": "10 Segundos",
+                "30": "30 Segundos",
+                "60": "1 minuto",
+                "300": "5 minutos",
+                "600": "10 minutos",
+                "900": "15 minutos",
+                "1200": "20 minutos",
+                "1800": "30 minutos",
+              },
+            },
+            autoClose: {
+              name: "Fechar ticket após",
+              options: {
+                disabled: "0 (Desabilitado)",
+                hour: "hora",
+                hours: "horas",
+              },
+            },
+            timeCreateNewTicket: {
+              name: "Cria novo ticket após",
+              options: {
+                disabled: "0 (Desabilitado)",
+                "10": "10 Segundos",
+                "30": "30 Segundos",
+                "60": "1 minuto",
+                "300": "5 minutos",
+                "1800": "30 minutos",
+                "3600": "1 hora",
+                "7200": "2 horas",
+                "21600": "6 horas",
+                "43200": "12 horas",
+                "86400": "24 horas",
+                "604800": "7 dias",
+                "1296000": "15 dias",
+                "2592000": "30 dias",
+              },
+            },
+          },
         },
       },
       messagesList: {
@@ -473,14 +626,14 @@ const messages = {
           assignedTo: "Atribuído à:",
           buttons: {
             return: "Retornar",
-            resolve: "Resolver",
+            resolve: "Resolvido",
             reopen: "Reabrir",
             accept: "Aceitar",
           },
         },
       },
       messagesInput: {
-        placeholderOpen: "Digite uma mensagem ou tecle ''/'' para utilizar as respostas rápidas cadastrada",
+        placeholderOpen: "Digite uma mensagem ou tecle ''/''",
         placeholderClosed:
           "Reabra ou aceite esse ticket para enviar uma mensagem.",
         signMessage: "Assinar",
@@ -492,11 +645,17 @@ const messages = {
         },
         extraInfo: "Outras informações",
       },
+      copyToClipboard: {
+        copy: "Copiar",
+        copied: "Copiado"
+      },
       ticketOptionsMenu: {
         delete: "Deletar",
+        deletedMessage: "Ticket deletado com sucesso!",
         transfer: "Transferir",
         confirmationModal: {
-          title: "Deletar o ticket do contato",
+          titleFrom: "#",
+          title: "Deletar as mensagens do ticket ",
           message:
             "Atenção! Todas as mensagens relacionadas ao ticket serão perdidas.",
         },

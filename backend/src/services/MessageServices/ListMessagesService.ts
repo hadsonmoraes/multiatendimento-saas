@@ -21,7 +21,7 @@ const ListMessagesService = async ({
   ticketId,
   companyId
 }: Request): Promise<Response> => {
-  const ticket = await ShowTicketService(ticketId);
+  const ticket = await ShowTicketService(ticketId, companyId);
 
   if (!ticket) {
     throw new AppError("ERR_NO_TICKET_FOUND", 404);

@@ -3,6 +3,7 @@ import Message from "../../models/Message";
 import Ticket from "../../models/Ticket";
 import User from "../../models/User";
 import Whatsapp from "../../models/Whatsapp";
+import { logger } from "../../utils/logger";
 
 interface MessageData {
   id: string;
@@ -12,15 +13,17 @@ interface MessageData {
   fromMe?: boolean;
   read?: boolean;
   mediaType?: string;
-  mediaUrl?: string;
+  mediaUrl?: string;  
 }
 interface Request {
   messageData: MessageData;
+  companyId?: number;
 }
 
-const CreateMessageService = async ({
-  messageData
-}: Request): Promise<Message> => {
+const CreateMessageService = async ({ messageData, companyId }: Request): Promise<Message> => {
+  logger.info('Processing delivery the message to '+ messageData.contactId + 
+    ' in ticketId '+ messageData.ticketId +' and business: '+ companyId);
+
   await Message.upsert(messageData);
 
   const message = await Message.findByPk(messageData.id, {

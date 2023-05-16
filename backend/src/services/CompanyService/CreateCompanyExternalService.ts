@@ -11,7 +11,9 @@ interface UserData {
   passwordDefault?: string;
   name?: string;
   numberAttendants?: string;
-  numberConections: number
+  numberConections: number,
+  numberSetores: number;
+  status: string;
 }
 
 interface Request {
@@ -32,10 +34,10 @@ const UpdateUserService = async ({ Data
     passwordDefault: Yup.string().required()
   });
 
-  const { email, passwordDefault, numberAttendants, name, numberConections } = Data;
+  const { email, passwordDefault, numberAttendants, name, numberConections, numberSetores, status } = Data;
 
   try {
-    await schema.validate({ email, passwordDefault, numberAttendants, name, numberConections });
+    await schema.validate({ email, passwordDefault, numberAttendants, name, numberConections, numberSetores, status });
   } catch (err: any) {
     throw new AppError(err.message);
   }
@@ -45,7 +47,9 @@ const UpdateUserService = async ({ Data
     passwordDefault,
     numberAttendants,
     name,
-    numberConections
+    numberConections,
+    numberSetores,
+    status
   });
 
   await user.reload();
@@ -63,10 +67,100 @@ const UpdateUserService = async ({ Data
   );
 
   const temp2 = await Setting.create({
-    key: `userApiToken-${user.id}`,
+    key: `userApiToken`,
     value: createAccessToken(temp),
-    companyId: user.id
-  })
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'allowUserEditConnection',
+    value: 'disabled',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'transferTicket',
+    value: 'disabled',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'afterMinutesTicketWithoutDepartmentTransferTo',
+    value: '',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'afterMinutesToTransfer',
+    value: '0',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'hideTicketWithoutDepartment',
+    value: 'disabled',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'useBotByQueueSample',
+    value: 'enabled',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'showApiKeyInCompanies',
+    value: 'disabled',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'ticketAutoClose',
+    value: '0',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: 'timeCreateNewTicket',
+    value: '7200',
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: "CheckMsgIsGroup",
+    value: "enabled",
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+
+  await Setting.create({
+    key: "call",
+    value: "disabled",
+    companyId: user.id,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
 
   return {
     company: user,

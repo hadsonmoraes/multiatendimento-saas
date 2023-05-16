@@ -6,7 +6,7 @@ import SetTicketMessagesAsRead from "../helpers/SetTicketMessagesAsRead";
 import Message from "../models/Message";
 import Whatsapp from "../models/Whatsapp";
 import CreateOrUpdateContactService from "../services/ContactServices/CreateOrUpdateContactService";
-import FindOrCreateTicketService from "../services/TicketServices/FindOrCreateTicketService";
+import {FindOrCreateTicketService} from "../services/TicketServices/FindOrCreateTicketService";
 import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import CheckIsValidContact from "../services/WbotServices/CheckIsValidContact";
 import CheckContactNumber from "../services/WbotServices/CheckNumber";
@@ -39,7 +39,9 @@ const createContact = async (
 
   const validNumber: any = await CheckContactNumber(newContact, companyId);
 
-  const profilePicUrl = await GetProfilePicUrl(validNumber, companyId);
+  let profilePicUrl = await GetProfilePicUrl(validNumber, companyId);
+  if (!profilePicUrl)
+    profilePicUrl = "/default-profile.png"; // Foto de perfil padrão    
 
   const number = validNumber;
 
@@ -65,13 +67,9 @@ const createContact = async (
     }
   }
 
-  const createTicket = await FindOrCreateTicketService(
-    contact,
-    whatsapp.id,
-    1
-  );
+  const createTicket = await FindOrCreateTicketService(contact, whatsapp.id, whatsapp.companyId);
 
-  const ticket = await ShowTicketService(createTicket.id);
+  const ticket = await ShowTicketService(createTicket.id, createTicket.companyId);
 
   SetTicketMessagesAsRead(ticket);
 
@@ -99,7 +97,6 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   }
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const contactAndTicket = await createContact(whatsappId, newContact.number, userJWT.companyId);
 

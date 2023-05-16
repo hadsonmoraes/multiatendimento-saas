@@ -1,9 +1,12 @@
 import Setting from "../models/Setting";
 import AppError from "../errors/AppError";
 
-const CheckSettings = async (key: string): Promise<string> => {
+const CheckSettings = async (key: string, companyId: number): Promise<string> => {
   const setting = await Setting.findOne({
-    where: { key }
+    where: { 
+      companyId: companyId,
+      key
+    }
   });
 
   if (!setting) {
@@ -13,4 +16,4 @@ const CheckSettings = async (key: string): Promise<string> => {
   return setting.value;
 };
 
-export default CheckSettings;
+export default CheckSettings; 

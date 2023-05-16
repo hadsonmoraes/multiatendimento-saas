@@ -52,9 +52,9 @@ const useStyles = makeStyles(theme => ({
 
 const SessionSchema = Yup.object().shape({
 	name: Yup.string()
-		.min(2, "Too Short!")
-		.max(50, "Too Long!")
-		.required("Required"),
+		.min(2, "Muito curto!")
+		.max(50, "Muito longo!")
+		.required("Obrigatório"),
 });
 
 const WhatsAppModal = ({ open, onClose, whatsAppId }) => {
@@ -164,7 +164,7 @@ const WhatsAppModal = ({ open, onClose, whatsAppId }) => {
 										label={i18n.t("queueModal.form.greetingMessage")}
 										type="greetingMessage"
 										multiline
-										rows={5}
+										minRows={5}
 										fullWidth
 										name="greetingMessage"
 										error={
@@ -183,7 +183,7 @@ const WhatsAppModal = ({ open, onClose, whatsAppId }) => {
 										label={i18n.t("whatsappModal.form.farewellMessage")}
 										type="farewellMessage"
 										multiline
-										rows={5}
+										minRows={5}
 										fullWidth
 										name="farewellMessage"
 										error={

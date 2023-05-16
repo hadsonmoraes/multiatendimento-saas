@@ -18,7 +18,7 @@ const ListWhatsAppsService = async (companyId: number): Promise<Whatsapp[]> => {
       {
         model: Queue,
         as: "queues",
-        attributes: ["id", "name", "color", "greetingMessage"]
+        attributes: ["id", "name", "color", "greetingMessage", "startWork", "endWork", "absenceMessage"]
       },
       {
         model: Company,
@@ -28,9 +28,8 @@ const ListWhatsAppsService = async (companyId: number): Promise<Whatsapp[]> => {
     ]
   });
 
-  console.log('Tamanho:.... ', whatsapps.length)
-
   return whatsapps;
 };
 
+process.setMaxListeners(0);
 export default ListWhatsAppsService;

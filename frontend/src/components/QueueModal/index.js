@@ -56,11 +56,17 @@ const useStyles = makeStyles(theme => ({
 
 const QueueSchema = Yup.object().shape({
 	name: Yup.string()
-		.min(2, "Too Short!")
-		.max(50, "Too Long!")
-		.required("Required"),
-	color: Yup.string().min(3, "Too Short!").max(9, "Too Long!").required(),
-	greetingMessage: Yup.string(),
+		.min(2, "Muito curto!")
+		.max(50, "Muito longo!")
+		.required("Obrigatório"),
+	color: Yup.string()
+		.min(3, "Muito curto!")
+		.max(9, "Muito longo!")
+		.required("Obrigatório"),
+	greetingMessage: Yup.string().nullable(),
+	startWork: Yup.string().nullable(),
+	endWork: Yup.string().nullable(),
+	absenceMessage: Yup.string().nullable(),
 });
 
 const QueueModal = ({ open, onClose, queueId }) => {
@@ -70,11 +76,17 @@ const QueueModal = ({ open, onClose, queueId }) => {
 		name: "",
 		color: "",
 		greetingMessage: "",
+		startWork: "",
+		endWork: "",
+		absenceMessage: "",
 	};
 
 	const [colorPickerModalOpen, setColorPickerModalOpen] = useState(false);
 	const [queue, setQueue] = useState(initialState);
 	const greetingRef = useRef();
+	const absenceRef = useRef();
+	const startWorkRef = useRef();
+	const endWorkRef = useRef();
 
 	useEffect(() => {
 		(async () => {
@@ -94,6 +106,9 @@ const QueueModal = ({ open, onClose, queueId }) => {
 				name: "",
 				color: "",
 				greetingMessage: "",
+				startWork: "",
+				endWork: "",
+				absenceMessage: "",
 			});
 		};
 	}, [queueId, open]);
@@ -110,7 +125,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 			} else {
 				await api.post("/queue", values);
 			}
-			toast.success("Queue saved successfully");
+			toast.success(`${i18n.t("queueModal.message.sucess")}`);
 			handleClose();
 		} catch (err) {
 			toastError(err);
@@ -141,6 +156,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 							<DialogContent dividers>
 								<Field
 									as={TextField}
+									fullWidth
 									label={i18n.t("queueModal.form.name")}
 									autoFocus
 									name="name"
@@ -149,10 +165,14 @@ const QueueModal = ({ open, onClose, queueId }) => {
 									variant="outlined"
 									margin="dense"
 									className={classes.textField}
-									inputRef={greetingRef} // passei para cá o CONTROLLER , já que o campo de mensagem de saudação não existe na minha versão. Há duas maneiras de abrir o COLORPICKER, no focus e clicando no conta gostas, no FOCUS estava dando erro, por isso passei para esse campo o CONTROLLER
+									inputRef={greetingRef} // passei para cá o CONTROLLER,
+								// já que o campo de mensagem de saudação não existe na minha versão. 
+								// Há duas maneiras de abrir o COLORPICKER, no focus e clicando no 
+								// conta gostas, no FOCUS estava dando erro, por isso passei para esse campo o CONTROLLER
 								/>
 								<Field
 									as={TextField}
+									fullWidth
 									label={i18n.t("queueModal.form.color")}
 									name="color"
 									id="color"
@@ -194,6 +214,77 @@ const QueueModal = ({ open, onClose, queueId }) => {
 										});
 									}}
 								/>
+								<div>
+									<Field
+										as={TextField}
+										label={i18n.t("queueModal.form.greetingMessage")}
+										type="greetingMessage"
+										multiline
+										inputRef={greetingRef}
+										rows={3}
+										fullWidth
+										name="greetingMessage"
+										error={touched.greetingMessage && Boolean(errors.greetingMessage)}
+										helperText={touched.greetingMessage && errors.greetingMessage}
+										variant="outlined"
+										margin="dense"
+									/>
+								</div>
+								<div>
+									<Field
+										as={TextField}
+										fullWidth
+										native
+										label={i18n.t("queueModal.form.startWork")}
+										type="time"
+										ampm={false}
+										defaultValue="08:00"
+										inputRef={startWorkRef}
+										InputLabelProps={{ shrink: true }}
+										inputProps={{ step: 600 }} // 5 min										
+										name="startWork"
+										error={touched.startWork && Boolean(errors.startWork)}
+										helperText={touched.startWork && errors.startWork}
+										variant="outlined"
+										margin="dense"
+									/>
+								</div>
+								<div>
+									<Field
+										as={TextField}
+										fullWidth
+										native
+										label={i18n.t("queueModal.form.endWork")}
+										type="time"
+										ampm={false}
+										defaultValue="18:00"
+										inputRef={endWorkRef}
+										InputLabelProps={{ shrink: true }}
+										inputProps={{ step: 600 }} // 5 min
+										name="endWork"
+										error={touched.endWork && Boolean(errors.endWork)}
+										helperText={touched.endWork && errors.endWork}
+										variant="outlined"
+										margin="dense"
+									/>
+								</div>
+								<div>
+									<Field
+										as={TextField}
+										label={i18n.t("queueModal.form.absenceMessage")}
+										type="absenceMessage"
+										multiline
+										inputRef={absenceRef}
+										rows={3}
+										defaultValue={i18n.t("queueModal.message.unavailable")}
+										fullWidth
+										name="absenceMessage"
+										error={touched.absenceMessage && Boolean(errors.absenceMessage)}
+										helperText={touched.absenceMessage && errors.absenceMessage}
+										variant="outlined"
+										margin="dense"
+									/>
+								</div>
 							</DialogContent>
 							<DialogActions>
 								<Button
@@ -226,7 +317,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 					)}
 				</Formik>
 			</Dialog>
-		</div>
+		</div >
 	);
 };
 

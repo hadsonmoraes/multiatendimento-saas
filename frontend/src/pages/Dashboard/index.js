@@ -1,20 +1,30 @@
-import React, { useContext } from "react"
+import React, { useState, useEffect, forwardRef } from "react";
 
-import Paper from "@material-ui/core/Paper"
-import Container from "@material-ui/core/Container"
-import Grid from "@material-ui/core/Grid"
-import { makeStyles } from "@material-ui/core/styles"
-import Typography from "@material-ui/core/Typography";
-
-import useTickets from "../../hooks/useTickets"
-
-import { AuthContext } from "../../context/Auth/AuthContext";
-
+import Paper from "@material-ui/core/Paper";
+import Container from "@material-ui/core/Container";
+import Grid from "@material-ui/core/Grid";
+import { makeStyles } from "@material-ui/core/styles";
 import { i18n } from "../../translate/i18n";
+// import Typography from "@material-ui/core/Typography";
+import { Button } from "@material-ui/core";
 
-import Chart from "./Chart"
+import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
+import subDays from "date-fns/subDays";
+import "react-datepicker/dist/react-datepicker.css";
+
+import Chart from "./Chart";
+import ChartPerUser from "./ChartPerUser";
+import ptBR from 'date-fns/locale/pt-BR';
+import useTickets from "../../hooks/useTickets";
+import api from "../../services/api";
+import toastError from "../../errors/toastError";
+import StatusSelect from "../../components/StatusSelect";
+import SetorSelect from "../../components/SetorSelect";
+import AtendenteSelect from "../../components/AtendenteSelect";
+import ChartPerQueue from "./ChatPerQueue";
 
 const useStyles = makeStyles(theme => ({
+
 	container: {
 		paddingTop: theme.spacing(4),
 		paddingBottom: theme.spacing(4),
@@ -24,94 +34,150 @@ const useStyles = makeStyles(theme => ({
 		display: "flex",
 		overflow: "auto",
 		flexDirection: "column",
-		height: 240,
+		height: 250,
 	},
-	customFixedHeightPaper: {
+	fixedHeightPaperFilter: {
 		padding: theme.spacing(2),
 		display: "flex",
 		overflow: "auto",
 		flexDirection: "column",
-		height: 120,
+		height: 90,
+		backgroundColor: "#E5E5E5",
+		alignItems: "center",
 	},
-	customFixedHeightPaperLg: {
+	multFieldLine: {
+		display: "flex",
+		"& > *:not(:last-child)": {
+			marginRight: theme.spacing(1),
+		},
+		alignItems: "center",
+	},
+	paper: {
 		padding: theme.spacing(2),
 		display: "flex",
-		overflow: "auto",
-		flexDirection: "column",
-		height: "100%",
+		alignItems: "center",
 	},
-}))
+}));
 
 const Dashboard = () => {
-	const classes = useStyles()
+	registerLocale('pt-BR', ptBR);
+	setDefaultLocale('pt-BR');
+	const classes = useStyles();
+	const [startDate, setStartDate] = useState(new Date());
+	const [endDate, setEndDate] = useState(new Date());
+	const [users, setUsers] = useState([]);
+	const [queues, setQueues] = useState([]);
 
-	const { user } = useContext(AuthContext);
-	var userQueueIds = [];
+	const [setorSelected, setSetorSelected] = useState(999);
+	const [atendenteSelected, setAtendenteSelected] = useState(999);
+	const [statusSelected, setStatusSelected] = useState("all");
 
-	if (user.queues && user.queues.length > 0) {
-		userQueueIds = user.queues.map(q => q.id);
-	}
+	const { tickets } = useTickets({ date: startDate.toISOString(), endDate: endDate.toISOString(), status: statusSelected, atendenteId: atendenteSelected, setorId: setorSelected });
 
-	const GetTickets = (status, showAll, withUnreadMessages) => {
+	const CustomInputDate = forwardRef(({ value, onClick }, ref) => (
+		<Button variant="contained" color="secondary" onClick={onClick} ref={ref}>
+			{value}
+		</Button>
+	));
 
-		const { count } = useTickets({
-			status: status,
-			showAll: showAll,
-			withUnreadMessages: withUnreadMessages,
-			queueIds: JSON.stringify(userQueueIds)
-		});
-		return count;
-	}
+	useEffect(() => {
+		const fetchUsers = async () => {
+			try {
+				const { data } = await api.get("/users");
+				//console.log('USRS => ', data.users);
+				setUsers(data.users);
+			} catch (err) {
+				toastError(err);
+			}
+		};
+		fetchUsers();
+	}, []);
+
+	useEffect(() => {
+		const fetchQueues = async () => {
+			try {
+				const { data } = await api.get("/queue");
+				//console.log('QUEUES => ', data);
+				setQueues(data);
+			} catch (err) {
+				toastError(err);
+			}
+		};
+		fetchQueues();
+	}, []);
 
 	return (
-		<div>
+		<div className={classes.root}>
 			<Container maxWidth="lg" className={classes.container}>
 				<Grid container spacing={3}>
-					<Grid item xs={4}>
-						<Paper className={classes.customFixedHeightPaper} style={{ overflow: "hidden" }}>
-							<Typography component="h3" variant="h6" color="primary" paragraph>
-								{i18n.t("dashboard.messages.inAttendance.title")}
-							</Typography>
-							<Grid item>
-								<Typography component="h1" variant="h4">
-									{GetTickets("open", "true", "false")}
-								</Typography>
-							</Grid>
+					<Grid item xs={12}>
+						<Paper className={classes.fixedHeightPaperFilter}>
+							<div className={classes.multFieldLine} >
+								<div>
+									{/*<Typography variant="body1">
+										{i18n.t("dashboard.dtinicial")}
+									</Typography>*/}
+									<DatePicker
+										title={i18n.t("dashboard.dtinicial")}
+										selected={startDate}
+										dateFormat="dd/MM/yyyy"
+										onChange={(date) => setStartDate(date)}
+										locale="pt-BR"
+										customInput={<CustomInputDate />}
+										minDate={subDays(new Date(), 30)}
+										maxDate={new Date()}
+									/>
+								</div>
+								<div>
+									{/*<Typography variant="body1">
+										{i18n.t("dashboard.dtfinal")}
+									</Typography>*/}
+									<DatePicker
+										title={i18n.t("dashboard.dtfinal")}
+										selected={endDate}
+										dateFormat="dd/MM/yyyy"
+										onChange={(date) => setEndDate(date)}
+										locale="pt-BR"
+										customInput={<CustomInputDate />}
+										minDate={subDays(new Date(), 30)}
+										maxDate={new Date()}
+									/>
+								</div>
+								<StatusSelect selected={statusSelected} onChange={(value) => setStatusSelected(value)} />
+								<SetorSelect selected={setorSelected} onChange={(value) => setSetorSelected(value)} />
+								<AtendenteSelect selected={atendenteSelected} onChange={(value) => setAtendenteSelected(value)} />
+							</div>
 						</Paper>
 					</Grid>
-					<Grid item xs={4}>
-						<Paper className={classes.customFixedHeightPaper} style={{ overflow: "hidden" }}>
-							<Typography component="h3" variant="h6" color="primary" paragraph>
-								{i18n.t("dashboard.messages.waiting.title")}
-							</Typography>
-							<Grid item>
-								<Typography component="h1" variant="h4">
-									{GetTickets("pending", "true", "false")}
-								</Typography>
-							</Grid>
-						</Paper>
-					</Grid>
-					<Grid item xs={4}>
-						<Paper className={classes.customFixedHeightPaper} style={{ overflow: "hidden" }}>
-							<Typography component="h3" variant="h6" color="primary" paragraph>
-								{i18n.t("dashboard.messages.closed.title")}
-							</Typography>
-							<Grid item>
-								<Typography component="h1" variant="h4">
-									{GetTickets("closed", "true", "false")}
-								</Typography>
-							</Grid>
-						</Paper>
-					</Grid>
+				</Grid>
+
+				<Grid container spacing={3}>
 					<Grid item xs={12}>
 						<Paper className={classes.fixedHeightPaper}>
-							<Chart />
+							<Chart tickets={tickets} />
+
+
+						</Paper>
+					</Grid>
+				</Grid>
+
+				<Grid container spacing={3}>
+					<Grid item xs={12}>
+						<Paper className={classes.fixedHeightPaper}>
+							<div className={classes.multFieldLine} style={{ width: '100%', height: 210 }} overflow={'hidden'} >
+								<div style={{ width: '80%', height: 210 }}>
+									<ChartPerUser tickets={tickets} users={users} />
+								</div>
+								<div style={{ width: '20%', height: 210 }}>
+									<ChartPerQueue tickets={tickets} queues={queues} />
+								</div>
+							</div>
 						</Paper>
 					</Grid>
 				</Grid>
 			</Container>
 		</div>
-	)
-}
+	);
+};
 
-export default Dashboard
+export default Dashboard;

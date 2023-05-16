@@ -5,6 +5,7 @@ import AppError from "../../errors/AppError";
 import Whatsapp from "../../models/Whatsapp";
 import ShowWhatsAppService from "./ShowWhatsAppService";
 import AssociateWhatsappQueue from "./AssociateWhatsappQueue";
+import { logger } from "../../utils/logger";
 
 interface WhatsappData {
   name?: string;
@@ -14,6 +15,7 @@ interface WhatsappData {
   greetingMessage?: string;
   farewellMessage?: string;
   queueIds?: number[];
+  companyId?: number;
 }
 
 interface Request {
@@ -30,6 +32,8 @@ const UpdateWhatsAppService = async ({
   whatsappData,
   whatsappId
 }: Request): Promise<Response> => {
+  logger.warn('Validating data and updating whatsapp connection in business: '+ whatsappData?.companyId);
+
   const schema = Yup.object().shape({
     name: Yup.string().min(2),
     status: Yup.string(),
@@ -43,13 +47,16 @@ const UpdateWhatsAppService = async ({
     session,
     greetingMessage,
     farewellMessage,
-    queueIds = []
+    queueIds = [],
+    companyId
   } = whatsappData;
+
+  logger.info('Business selected to update in whatsapp connection is: ' + companyId);
 
   try {
     await schema.validate({ name, status, isDefault });
   } catch (err) {
-    throw new AppError(err.message);
+    throw new AppError(err.message)
   }
 
   if (queueIds.length > 1 && !greetingMessage) {
@@ -60,10 +67,19 @@ const UpdateWhatsAppService = async ({
 
   if (isDefault) {
     oldDefaultWhatsapp = await Whatsapp.findOne({
-      where: { isDefault: true, id: { [Op.not]: whatsappId } }
+      where: { 
+          isDefault: true,
+          companyId: whatsappData?.companyId       
+        }
     });
+    
     if (oldDefaultWhatsapp) {
-      await oldDefaultWhatsapp.update({ isDefault: false });
+      logger.warn('Updateting connection default to false in business: ' + whatsappData?.companyId);
+      
+      await oldDefaultWhatsapp.update({ 
+        where: { isDefault: false,
+          companyId: { [Op.eq]: whatsappData?.companyId } } 
+      });
     }
   }
 
@@ -75,7 +91,7 @@ const UpdateWhatsAppService = async ({
     session,
     greetingMessage,
     farewellMessage,
-    isDefault
+    isDefault    
   });
 
   await AssociateWhatsappQueue(whatsapp, queueIds);

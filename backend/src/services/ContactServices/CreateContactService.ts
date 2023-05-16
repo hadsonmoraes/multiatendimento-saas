@@ -1,5 +1,6 @@
 import AppError from "../../errors/AppError";
 import Contact from "../../models/Contact";
+import { logger } from "../../utils/logger";
 
 interface ExtraInfo {
   name: string;
@@ -22,6 +23,8 @@ const CreateContactService = async ({
   companyId,
   extraInfo = []
 }: Request): Promise<Contact> => {
+  logger.info('Data contact to create contact in business: ' + companyId);
+  logger.warn('\nName: ' + name + '\nNumber: ' + number + '\nEmail: ' + email);
 
   const numberExists = await Contact.findOne({
     where: { number, companyId: companyId }

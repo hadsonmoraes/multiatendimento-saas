@@ -54,11 +54,11 @@ const useStyles = makeStyles(theme => ({
 
 const ContactSchema = Yup.object().shape({
 	name: Yup.string()
-		.min(2, "Too Short!")
-		.max(50, "Too Long!")
-		.required("Required"),
-	number: Yup.string().min(8, "Too Short!").max(50, "Too Long!"),
-	email: Yup.string().email("Invalid email"),
+		.min(2, "Muito curto!")
+		.max(50, "Muito longo!")
+		.required("Obrigatório"),
+	number: Yup.string().min(8, "Muito curto!").max(50, "Muito longo!"),
+	email: Yup.string().email("Email inválido"),
 });
 
 const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
@@ -150,27 +150,35 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 								<Typography variant="subtitle1" gutterBottom>
 									{i18n.t("contactModal.form.mainInfo")}
 								</Typography>
-								<Field
-									as={TextField}
-									label={i18n.t("contactModal.form.name")}
-									name="name"
-									autoFocus
-									error={touched.name && Boolean(errors.name)}
-									helperText={touched.name && errors.name}
-									variant="outlined"
-									margin="dense"
-									className={classes.textField}
-								/>
-								<Field
-									as={TextField}
-									label={i18n.t("contactModal.form.number")}
-									name="number"
-									error={touched.number && Boolean(errors.number)}
-									helperText={touched.number && errors.number}
-									placeholder="5513912344321"
-									variant="outlined"
-									margin="dense"
-								/>
+								<div>
+									<Field
+										as={TextField}
+										required
+										fullWidth
+										label={i18n.t("contactModal.form.name")}
+										name="name"
+										autoFocus
+										error={touched.name && Boolean(errors.name)}
+										helperText={touched.name && errors.name}
+										variant="outlined"
+										margin="dense"
+										className={classes.textField}
+									/>
+								</div>
+								<div>
+									<Field
+										as={TextField}
+										required
+										fullWidth
+										label={i18n.t("contactModal.form.number")}
+										name="number"
+										error={touched.number && Boolean(errors.number)}
+										helperText={touched.number && errors.number}
+										placeholder="556399123456"
+										variant="outlined"
+										margin="dense"
+									/>
+								</div>
 								<div>
 									<Field
 										as={TextField}

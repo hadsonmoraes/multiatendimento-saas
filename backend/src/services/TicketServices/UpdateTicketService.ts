@@ -2,8 +2,7 @@ import CheckContactOpenTickets from "../../helpers/CheckContactOpenTickets";
 import SetTicketMessagesAsRead from "../../helpers/SetTicketMessagesAsRead";
 import { getIO } from "../../libs/socket";
 import Ticket from "../../models/Ticket";
-import SendWhatsAppMessage from "../WbotServices/SendWhatsAppMessage";
-import ShowWhatsAppService from "../WhatsappService/ShowWhatsAppService";
+import { logger } from "../../utils/logger";
 import ShowTicketService from "./ShowTicketService";
 
 interface TicketData {
@@ -16,6 +15,7 @@ interface TicketData {
 interface Request {
   ticketData: TicketData;
   ticketId: string | number;
+  companyId: number;
 }
 
 interface Response {
@@ -24,24 +24,27 @@ interface Response {
   oldUserId: number | undefined;
 }
 
-const UpdateTicketService = async ({
-  ticketData,
-  ticketId
-}: Request): Promise<Response> => {
-  const { status, userId, queueId, whatsappId } = ticketData;
+const UpdateTicketService = async ({ ticketData, ticketId, companyId }: Request): Promise<Response> => {
+  logger.info('Updating ticketId ' + ticketId + ' status ' + ticketData?.status + ' in business: ' + companyId);
 
-  const ticket = await ShowTicketService(ticketId);
+  const { status, queueId, whatsappId } = ticketData;
+  let userId = ticketData?.userId;
+
+  if (userId == 0 || userId == undefined)
+    userId = undefined;
+
+  const ticket = await ShowTicketService(ticketId, companyId);
   await SetTicketMessagesAsRead(ticket);
 
   if (whatsappId && ticket.whatsappId !== whatsappId) {
-    await CheckContactOpenTickets(ticket.contactId, whatsappId);
+    await CheckContactOpenTickets(ticket.contactId, whatsappId, ticket.companyId);
   }
 
   const oldStatus = ticket.status;
   const oldUserId = ticket.user?.id;
 
   if (oldStatus === "closed") {
-    await CheckContactOpenTickets(ticket.contact.id, ticket.whatsappId);
+    await CheckContactOpenTickets(ticket.contact.id, ticket.whatsappId, ticket.companyId);
   }
 
   await ticket.update({

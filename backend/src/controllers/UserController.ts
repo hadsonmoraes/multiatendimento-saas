@@ -23,7 +23,7 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   const { searchParam, pageNumber } = req.query as IndexQuery;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
+
   const { users, count, hasMore } = await ListUsersService({
     searchParam,
     pageNumber,
@@ -35,12 +35,9 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   const users = await ShowUserService2(userJWT.companyId);
   const company: any = await ShowCompanyService(userJWT.companyId)
-  console.log(`Company::: ${company.dataValues.numberAttendants}`)
-  console.log(`Company2::: ${users.length}`)
   const v1: number = Number(users.length);
   const v2: number = Number(company.dataValues.numberAttendants);
 
@@ -48,7 +45,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     throw new AppError("ERR_NO_LIMIT_USER", 403);
   }
 
-  const { email, password, name, profile, queueIds, whatsappId, companyId } = req.body;
+  const { email, password, name, profile, queueIds, whatsappId } = req.body;
 
   const user = await CreateUserService({
     email,
@@ -90,8 +87,10 @@ export const update = async (
 
   const user = await UpdateUserService({ userData, userId });
 
+  const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
+
   const io = getIO();
-  io.emit("user", {
+  io.emit(`user-${userJWT.companyId}`, {
     action: "update",
     user
   });
@@ -106,7 +105,6 @@ export const remove = async (
   const { userId } = req.params;
 
   const userJWT: any = req.headers.authorization && await jwt_decode(req.headers.authorization.replace('Bearer ', ''))
-  console.log(userJWT.companyId)
 
   await DeleteUserService(userId);
 

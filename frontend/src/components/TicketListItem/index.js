@@ -13,15 +13,20 @@ import Typography from "@material-ui/core/Typography";
 import Avatar from "@material-ui/core/Avatar";
 import Divider from "@material-ui/core/Divider";
 import Badge from "@material-ui/core/Badge";
-
+import IconButton from '@material-ui/core/IconButton';
 import { i18n } from "../../translate/i18n";
-
+// import DoneIcon from '@material-ui/icons/Done';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+// import ReplayIcon from '@material-ui/icons/Replay';
+// import StopIcon from '@material-ui/icons/Stop';
 import api from "../../services/api";
-import ButtonWithSpinner from "../ButtonWithSpinner";
 import MarkdownWrapper from "../MarkdownWrapper";
 import { Tooltip } from "@material-ui/core";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import toastError from "../../errors/toastError";
+import jwt_decode from "jwt-decode";
+import AcceptTicketWithouSelectQueue from "../AcceptTicketWithoutQueueModal";
+import ButtonWithSpinner from "../ButtonWithSpinner";
 
 const useStyles = makeStyles(theme => ({
 	ticket: {
@@ -81,6 +86,12 @@ const useStyles = makeStyles(theme => ({
 		marginLeft: "auto",
 	},
 
+	bottomButton: {
+		bottom: "12px",
+		// marginLeft: -10,
+		marginRight: -15,
+	},
+
 	badgeStyle: {
 		color: "white",
 		backgroundColor: green[500],
@@ -116,13 +127,21 @@ const useStyles = makeStyles(theme => ({
 	},
 }));
 
+// eslint-disable-next-line
 const TicketListItem = ({ ticket }) => {
 	const classes = useStyles();
 	const history = useHistory();
+	// eslint-disable-next-line
 	const [loading, setLoading] = useState(false);
 	const { ticketId } = useParams();
 	const isMounted = useRef(true);
 	const { user } = useContext(AuthContext);
+	const [acceptTicketWithouSelectQueueOpen, setAcceptTicketWithouSelectQueueOpen] = useState(false);
+
+	if (localStorage.getItem("token") !== null) {
+		const token = localStorage.getItem("token");
+		var userJWT = jwt_decode(token);
+	}
 
 	useEffect(() => {
 		return () => {
@@ -147,6 +166,77 @@ const TicketListItem = ({ ticket }) => {
 		history.push(`/tickets/${id}`);
 	};
 
+	const queueName = selectedTicket => {
+		let name = null;
+		let color = null;
+		user.queues.forEach(userQueue => {
+			if (userQueue.id === selectedTicket.queueId) {
+				name = userQueue.name;
+				color = userQueue.color;
+			}
+		});
+		return {
+			name,
+			color
+		};
+	}
+
+	// const handleReopenTicket = async id => {
+	// 	setLoading(true);
+	// 	try {
+	// 		await api.put(`/tickets/${id}`, {
+	// 			status: "open",
+	// 			userId: user?.id,
+	// 		});
+	// 	} catch (err) {
+	// 		setLoading(false);
+	// 		toastError(err);
+	// 	}
+	// 	if (isMounted.current) {
+	// 		setLoading(false);
+	// 	}
+	// 	history.push(`/tickets/${id}`);
+	// };
+
+	const handleOpenAcceptTicketWithouSelectQueue = () => {
+		setAcceptTicketWithouSelectQueueOpen(true);
+	};
+
+	const handleViewTicket = async id => {
+		setLoading(true);
+		try {
+			await api.put(`/tickets/${id}`, {
+				status: "pending",
+				userId: 0,
+			});
+		} catch (err) {
+			setLoading(false);
+			toastError(err);
+		}
+		if (isMounted.current) {
+			setLoading(false);
+		}
+		history.push(`/tickets/${id}`);
+	};
+
+	// const handleClosedTicket = async id => {
+	// 	setLoading(true);
+	// 	try {
+	// 		await api.put(`/tickets/${id}`, {
+	// 			status: "closed",
+	// 			userId: user?.id,
+	// 		});
+	// 	} catch (err) {
+	// 		setLoading(false);
+	// 		toastError(err);
+	// 	}
+	// 	if (isMounted.current) {
+	// 		setLoading(false);
+	// 	}
+	// 	history.push(`/tickets/${id}`);
+	// };
+
+
 	const handleSelectTicket = id => {
 		history.push(`/tickets/${id}`);
 	};
@@ -157,6 +247,11 @@ const TicketListItem = ({ ticket }) => {
 
 	return (
 		<React.Fragment key={ticket.id}>
+			<AcceptTicketWithouSelectQueue
+				modalOpen={acceptTicketWithouSelectQueueOpen}
+				onClose={(e) => setAcceptTicketWithouSelectQueueOpen(false)}
+				ticketId={ticket.id}
+			/>
 			<ListItem
 				dense
 				button
@@ -172,10 +267,10 @@ const TicketListItem = ({ ticket }) => {
 				<Tooltip
 					arrow
 					placement="right"
-					title={ticket.queue?.name || "Sem fila"}
+					title={ticket.queue?.name || queueName(ticket)?.name || "Nenhum Setor"}
 				>
 					<span
-						style={{ backgroundColor: ticket.queue?.color || "#7C7C7C" }}
+						style={{ backgroundColor: ticket.queue?.color || queueName(ticket)?.color || "#7C7C7C" }}
 						className={classes.ticketQueueColor}
 					></span>
 				</Tooltip>
@@ -195,9 +290,9 @@ const TicketListItem = ({ ticket }) => {
 								{ticket.contact.name}
 							</Typography>
 							{ticket.status === "closed" && (
-								<Badge
+								<Badge overlap="rectangular"
 									className={classes.closedBadge}
-									badgeContent={"closed"}
+									badgeContent={"Resolvido"}
 									color="primary"
 								/>
 							)}
@@ -236,7 +331,7 @@ const TicketListItem = ({ ticket }) => {
 								)}
 							</Typography>
 
-							<Badge
+							<Badge overlap="rectangular"
 								className={classes.newMessagesCount}
 								badgeContent={ticket.unreadMessages}
 								classes={{
@@ -246,9 +341,30 @@ const TicketListItem = ({ ticket }) => {
 						</span>
 					}
 				/>
+
 				{ticket.status === "pending" && (
-					<ButtonWithSpinner
+					userJWT.profile === 'admin' ?
+						<IconButton
+							className={classes.bottomButton}
+							color="primary"
+							onClick={e => handleViewTicket(ticket.id)} >
+							<VisibilityIcon />
+						</IconButton>
+						: null
+				)}
+				{/* {ticket.status === "open" && (
+					<IconButton
+						className={classes.bottomButton}
 						color="primary"
+						onClick={e => handleViewTicket(ticket.id)} >
+						<ReplayIcon />
+					</IconButton>
+				)} */}
+
+				{(ticket.status === "pending" && ticket.queue !== null) && (
+					<ButtonWithSpinner
+						style={{ backgroundColor: '#F29D0A', color: '#ffffff', padding: '0px', bottom: '0px', borderRadius: '0px', left: '8px', fontSize: '0.6rem' }}
+						// color="primary"
 						variant="contained"
 						className={classes.acceptButton}
 						size="small"
@@ -258,6 +374,36 @@ const TicketListItem = ({ ticket }) => {
 						{i18n.t("ticketsList.buttons.accept")}
 					</ButtonWithSpinner>
 				)}
+
+
+				{(ticket.status === "pending" && (ticket.queue !== null && ticket.isGroup === true)) && (
+					<ButtonWithSpinner
+						style={{ backgroundColor: '#F29D0A', color: '#ffffff', padding: '0px', bottom: '0px', borderRadius: '0px', left: '8px', fontSize: '0.6rem' }}
+						// color="primary"
+						variant="contained"
+						className={classes.acceptButton}
+						size="small"
+						loading={loading}
+						onClick={e => handleAcepptTicket(ticket.id)}
+					>
+						{i18n.t("ticketsList.buttons.accept")}
+					</ButtonWithSpinner>
+				)}
+
+				{(ticket.status === "pending" && ticket.isGroup === false && (ticket.queue === null || ticket.queue === undefined)) && (
+					<ButtonWithSpinner
+						style={{ backgroundColor: '#78BEE1', color: '#000000', padding: '0px', bottom: '0px', borderRadius: '0px', left: '8px', fontSize: '0.6rem', fontWeight: 'bold' }}
+						// color="primary"
+						variant="contained"
+						className={classes.acceptButton}
+						size="small"
+						loading={loading}
+						onClick={e => handleOpenAcceptTicketWithouSelectQueue()}
+					>
+						{i18n.t("ticketsList.buttons.accept")}
+					</ButtonWithSpinner>
+				)}
+
 			</ListItem>
 			<Divider variant="inset" component="li" />
 		</React.Fragment>

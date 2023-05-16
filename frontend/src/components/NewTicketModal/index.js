@@ -18,7 +18,23 @@ import api from "../../services/api";
 import ButtonWithSpinner from "../ButtonWithSpinner";
 import ContactModal from "../ContactModal";
 import toastError from "../../errors/toastError";
+import { toast } from "react-toastify";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { parseISO, format } from "date-fns";
+
+import {
+	FormControl,
+	InputLabel,
+	makeStyles,
+	Select
+} from "@material-ui/core";
+
+const useStyles = makeStyles((theme) => ({
+	maxWidth: {
+	  width: "100%",
+	},
+  }));
+  
 
 const filter = createFilterOptions({
 	trim: true,
@@ -32,11 +48,15 @@ const NewTicketModal = ({ modalOpen, onClose }) => {
 	const [searchParam, setSearchParam] = useState("");
 	const [selectedContact, setSelectedContact] = useState(null);
 	const [newContact, setNewContact] = useState({});
-	const [contactModalOpen, setContactModalOpen] = useState(false);
-	const { user } = useContext(AuthContext);
-
+	const [contactModalOpen, setContactModalOpen] = useState(false);	
+	const { user } = useContext(AuthContext); 
+	const [selectedQueue, setSelectedQueue] = useState('');
+	const [queues, setQueues] = useState([]);
+	const classes = useStyles();
+ 
 	useEffect(() => {
 		if (!modalOpen || searchParam.length < 3) {
+			handleSaveTicket(undefined);
 			setLoading(false);
 			return;
 		}
@@ -58,34 +78,63 @@ const NewTicketModal = ({ modalOpen, onClose }) => {
 			fetchContacts();
 		}, 500);
 		return () => clearTimeout(delayDebounceFn);
+	// eslint-disable-next-line
 	}, [searchParam, modalOpen]);
 
+    useEffect(() => {
+        const loadQueues = async () => {
+          let listAll = user.queues; 
+          const date = new Date().toISOString();
+          let list = [];
+    
+          listAll.forEach(temp => {
+            if (temp.startWork && temp.startWork !== '') {
+              if (format(parseISO(date), "HH:mm") >= temp.startWork && format(parseISO(date), "HH:mm") <= temp.endWork)
+                list.push(temp);
+            } else {
+              list.push(temp);
+            }
+          }); 
+
+          setQueues(list); 
+        }
+
+        loadQueues();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+    
 	const handleClose = () => {
 		onClose();
 		setSearchParam("");
 		setSelectedContact(null);
+		setSelectedQueue("");
 	};
 
 	const handleSaveTicket = async contactId => {
-		if (!contactId) return;
+		if (!contactId || searchParam.length === 0) 
+			return;
+
 		setLoading(true);
 		try {
 			const { data: ticket } = await api.post("/tickets", {
 				contactId: contactId,
 				userId: user.id,
 				status: "open",
+				queueId: selectedQueue
 			});
 			history.push(`/tickets/${ticket.id}`);
 		} catch (err) {
 			toastError(err);
 		}
 		setLoading(false);
-		handleClose();
+		handleClose(); 
 	};
 
 	const handleSelectOption = (e, newValue) => {
 		if (newValue?.number) {
 			setSelectedContact(newValue);
+		} else if (newValue == null) {
+			setSelectedContact(null);
 		} else if (newValue?.name) {
 			setNewContact({ name: newValue.name });
 			setContactModalOpen(true);
@@ -97,7 +146,11 @@ const NewTicketModal = ({ modalOpen, onClose }) => {
 	};
 
 	const handleAddNewContactTicket = contact => {
-		handleSaveTicket(contact.id);
+		if (contact?.number) {
+			setSearchParam(contact.number);
+			setSelectedContact(null);
+			toast.success(contact.name +' '+ i18n.t("newTicketModal.savedContact"));
+		}
 	};
 
 	const createAddContactOption = (filterOptions, params) => {
@@ -118,7 +171,7 @@ const NewTicketModal = ({ modalOpen, onClose }) => {
 		} else {
 			return `${i18n.t("newTicketModal.add")} ${option.name}`;
 		}
-	};
+	}; 
 
 	const renderOptionLabel = option => {
 		if (option.number) {
@@ -159,6 +212,7 @@ const NewTicketModal = ({ modalOpen, onClose }) => {
 								label={i18n.t("newTicketModal.fieldLabel")}
 								variant="outlined"
 								autoFocus
+								required
 								onChange={e => setSearchParam(e.target.value)}
 								onKeyPress={e => {
 									if (loading || !selectedContact) return;
@@ -180,6 +234,25 @@ const NewTicketModal = ({ modalOpen, onClose }) => {
 							/>
 						)}
 					/>
+					<DialogContent />
+
+					<FormControl variant="outlined" className={classes.maxWidth}>
+						<InputLabel>{i18n.t("newTicketModal.fieldQueue")}</InputLabel>
+						<Select 
+							required
+							native
+							fullWidth
+							className={classes.settingOption}	
+							value={selectedQueue}
+							onChange={(e) => setSelectedQueue(e.target.value)}
+							label={i18n.t("newTicketModal.fieldQueue")}
+						>				
+							<option value={''}>&nbsp;</option>			
+							{queues.map((queue) => (
+								<option key={queue.id} value={queue.id}>{queue.name}</option>
+							))}
+						</Select>
+					</FormControl>
 				</DialogContent>
 				<DialogActions>
 					<Button
@@ -193,7 +266,7 @@ const NewTicketModal = ({ modalOpen, onClose }) => {
 					<ButtonWithSpinner
 						variant="contained"
 						type="button"
-						disabled={!selectedContact}
+						disabled={!selectedContact || selectedContact === '' || !selectedQueue || searchParam.length === 0}
 						onClick={() => handleSaveTicket(selectedContact.id)}
 						color="primary"
 						loading={loading}

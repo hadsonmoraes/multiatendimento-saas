@@ -26,6 +26,11 @@ const TicketOptionsMenu = ({ ticket, menuOpen, handleClose, anchorEl }) => {
 	const handleDeleteTicket = async () => {
 		try {
 			await api.delete(`/tickets/${ticket.id}`);
+			await api.put(`/contacts/${ticket.contactId}`, {
+				name: ticket.contact.name,
+				number: ticket.contact.number,
+				commandBot: '',
+			});
 		} catch (err) {
 			toastError(err);
 		}
@@ -79,11 +84,9 @@ const TicketOptionsMenu = ({ ticket, menuOpen, handleClose, anchorEl }) => {
 				/>
 			</Menu>
 			<ConfirmationModal
-				title={`${i18n.t("ticketOptionsMenu.confirmationModal.title")}${
-					ticket.id
-				} ${i18n.t("ticketOptionsMenu.confirmationModal.titleFrom")} ${
-					ticket.contact.name
-				}?`}
+				title={`${i18n.t("ticketOptionsMenu.confirmationModal.title")}${ticket.id
+					} ${i18n.t("ticketOptionsMenu.confirmationModal.titleFrom")} ${ticket.contact.name
+					}?`}
 				open={confirmationOpen}
 				onClose={setConfirmationOpen}
 				onConfirm={handleDeleteTicket}

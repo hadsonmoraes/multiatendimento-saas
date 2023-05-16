@@ -2,11 +2,13 @@ import Bots from "../../models/Bot";
 import AppError from "../../errors/AppError";
 import Queue from "../../models/Queue";
 import User from "../../models/User";
-import { Op } from "sequelize";
+import { logger } from "../../utils/logger";
 
 const ShowBotsService = async (companyId: number): Promise<Bots[]> => {
+    logger.info('Get botService to business: ' + companyId);
+
     const bots = await Bots.findAll({
-        where: { companyId },
+        where: { companyId: companyId },
         include: [
             {
                 model: Queue,

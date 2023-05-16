@@ -38,6 +38,7 @@ const useStyles = makeStyles(theme => ({
 	root: {
 		display: "flex",
 		flexWrap: "wrap",
+		//width: "100%",
 	},
 	multFieldLine: {
 		display: "flex",
@@ -66,11 +67,11 @@ const useStyles = makeStyles(theme => ({
 
 const UserSchema = Yup.object().shape({
 	name: Yup.string()
-		.min(2, "Too Short!")
-		.max(50, "Too Long!")
-		.required("Required"),
-	password: Yup.string().min(5, "Too Short!").max(50, "Too Long!"),
-	email: Yup.string().email("Invalid email").required("Required"),
+		.min(2, "Muito curto!")
+		.max(50, "Muito longo!")
+		.required("Obrigatório"),
+	password: Yup.string().min(5, "Muito curto!").max(50, "Muito longo!"),
+	email: Yup.string().email("Email inválido").required("Obrigatório"),
 });
 
 const UserModal = ({ open, onClose, userId }) => {
@@ -221,6 +222,7 @@ const UserModal = ({ open, onClose, userId }) => {
 
 													<Field
 														as={Select}
+														fullWidth
 														label={i18n.t("userModal.form.profile")}
 														name="profile"
 														labelId="profile-selection-label"
@@ -253,6 +255,7 @@ const UserModal = ({ open, onClose, userId }) => {
 											<InputLabel>{i18n.t("userModal.form.whatsapp")}</InputLabel>
 											<Field
 												as={Select}
+												fullWidth
 												value={whatsappId}
 												onChange={(e) => setWhatsappId(e.target.value)}
 												label={i18n.t("userModal.form.whatsapp")}

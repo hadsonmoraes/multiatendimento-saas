@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
-
+ 
 const useAuth = () => {
 	const history = useHistory();
 	const [isAuth, setIsAuth] = useState(false);
@@ -106,16 +106,12 @@ const useAuth = () => {
 		//setLoading(true);
 
 		try {
-			console.log("logout");
 			await api.delete("/auth/logout");
 			setIsAuth(false);
-			console.log("logout 2");
 			setUser({});
 			localStorage.removeItem("token");
 			api.defaults.headers.Authorization = undefined;
-			console.log("logout 3");
 			history.push("/login");
-			console.log("logout 4");
 			//window.refresh();
 			//setLoading(false);
 		} catch (err) {

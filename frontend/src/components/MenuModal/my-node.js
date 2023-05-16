@@ -7,9 +7,9 @@ const propTypes = {
 };
 
 const MyNode = ({ nodeData }) => {
-  const selectNode = () => {
-    alert("Hi All. I'm " + nodeData.name + ". I'm a " + nodeData.title + ".");
-  };
+  // const selectNode = () => {
+  //   alert("Hi All. I'm " + nodeData.name + ". I'm a " + nodeData.title + ".");
+  // };
 
   return (
     <div>
